@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.09.01+minimal",
+  "locale": "ru",
+  "generatedAt": "2026-09-01T09:00:00Z",
+  "fallbackEditionId": "edition:2026-09-01-sample-founder",
+  "entities": [
+    {
+      "id": "person:sample-founder",
+      "kind": "person",
+      "name": "Тестовый основатель",
+      "shortName": "Основатель",
+      "summary": "Вымышленная персона для проверки контракта.",
+      "media": {
+        "url": "https://media.example.org/sample-founder.jpg",
+        "sourcePageUrl": "https://example.org/sample-founder-license",
+        "mimeType": "image/jpeg",
+        "width": 1200,
+        "height": 1200,
+        "byteSize": 120000,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "license": "cc0",
+        "author": "Example Author",
+        "attribution": "Example Author, CC0"
+      }
+    },
+    {
+      "id": "organization:sample-company",
+      "kind": "organization",
+      "name": "Тестовая компания",
+      "shortName": "Компания",
+      "summary": "Вымышленная организация для проверки контракта."
+    }
+  ],
+  "profiles": [
+    {
+      "id": "profile:sample-founder",
+      "personId": "person:sample-founder",
+      "story": "Вымышленный редакционный сюжет, используемый только как fixture.",
+      "startingConditions": "Вымышленные стартовые условия без связи с реальным человеком.",
+      "wealthEstimateIds": ["wealth:sample-founder-2026-09"],
+      "timelineEventIds": [
+        "timeline:sample-founder-event-1",
+        "timeline:sample-founder-event-2",
+        "timeline:sample-founder-event-3",
+        "timeline:sample-founder-event-4",
+        "timeline:sample-founder-event-5",
+        "timeline:sample-founder-event-6"
+      ],
+      "educationRelationshipIds": [],
+      "controversyClaimIds": [],
+      "lastReviewedOn": "2026-09-01"
+    }
+  ],
+  "wealthEstimates": [
+    {
+      "id": "wealth:sample-founder-2026-09",
+      "personId": "person:sample-founder",
+      "amountUsd": "1000000000",
+      "asOf": "2026-09-01",
+      "sourceIds": ["source:sample-primary"],
+      "methodologyNote": "Вымышленная сумма для проверки точного строкового представления.",
+      "components": [
+        {
+          "label": "Доля в тестовой компании",
+          "description": "Вымышленный компонент состояния.",
+          "amountUsd": "1000000000",
+          "sourceIds": ["source:sample-primary"]
+        }
+      ]
+    }
+  ],
+  "timelineEvents": [
+    {
+      "id": "timeline:sample-founder-event-1",
+      "personId": "person:sample-founder",
+      "occurredOn": "2001-01-01",
+      "category": "origin",
+      "title": "Вымышленное начало",
+      "description": "Fixture-событие 1.",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "timeline:sample-founder-event-2",
+      "personId": "person:sample-founder",
+      "occurredOn": "2002-01-01",
+      "category": "education",
+      "title": "Вымышленное обучение",
+      "description": "Fixture-событие 2.",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "timeline:sample-founder-event-3",
+      "personId": "person:sample-founder",
+      "occurredOn": "2003-01-01",
+      "category": "career",
+      "title": "Вымышленная работа",
+      "description": "Fixture-событие 3.",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "timeline:sample-founder-event-4",
+      "personId": "person:sample-founder",
+      "occurredOn": "2004-01-01",
+      "category": "company",
+      "title": "Вымышленная компания",
+      "description": "Fixture-событие 4.",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "timeline:sample-founder-event-5",
+      "personId": "person:sample-founder",
+      "occurredOn": "2005-01-01",
+      "category": "wealth",
+      "title": "Вымышленная оценка",
+      "description": "Fixture-событие 5.",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "timeline:sample-founder-event-6",
+      "personId": "person:sample-founder",
+      "occurredOn": "2006-01-01",
+      "category": "deal",
+      "title": "Вымышленная сделка",
+      "description": "Fixture-событие 6.",
+      "claimIds": ["claim:sample-founded-company"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:sample-founded-company",
+      "subjectId": "relationship:sample-founded-company",
+      "kind": "relationship",
+      "text": "Вымышленная персона основала вымышленную компанию.",
+      "riskLevel": "routine",
+      "relationshipPosition": "supports",
+      "sourceIds": ["source:sample-primary"],
+      "lastReviewedOn": "2026-09-01"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:sample-primary",
+      "tier": "primary",
+      "title": "Вымышленный первичный источник",
+      "publisher": "Example Publisher",
+      "authors": ["Example Author"],
+      "publishedOn": "2026-08-01",
+      "url": "https://example.org/source",
+      "language": "ru",
+      "accessedOn": "2026-09-01"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "relationship:sample-founded-company",
+      "sourceEntityId": "person:sample-founder",
+      "targetEntityId": "organization:sample-company",
+      "kind": "founded",
+      "direction": "directed",
+      "status": "confirmed",
+      "startDate": "2004-01-01",
+      "claimIds": ["claim:sample-founded-company"]
+    }
+  ],
+  "editions": [
+    {
+      "id": "edition:2026-09-01-sample-founder",
+      "date": "2026-09-01",
+      "featuredPersonId": "person:sample-founder",
+      "title": "Тестовый выпуск",
+      "thesis": "Вымышленный выпуск для проверки transport schema.",
+      "visibleEntityIds": ["person:sample-founder", "organization:sample-company"],
+      "visibleRelationshipIds": ["relationship:sample-founded-company"]
+    }
+  ],
+  "graphLayout": {
+    "layoutVersion": 1,
+    "width": 10000,
+    "height": 10000,
+    "positions": [
+      { "entityId": "person:sample-founder", "x": 5000, "y": 5000 },
+      { "entityId": "organization:sample-company", "x": 6500, "y": 5000 }
+    ]
+  }
+}

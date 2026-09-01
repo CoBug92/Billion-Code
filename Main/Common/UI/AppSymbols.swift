@@ -1,0 +1,18 @@
+enum AppSymbols {
+    static let person = "person.fill"
+    static let organization = "building.2.fill"
+    static let university = "graduationcap.fill"
+    static let foundation = "heart.fill"
+    static let family = "person.3.fill"
+    static let deal = "arrow.left.arrow.right"
+    static let event = "calendar"
+    static let people = "person.2.fill"
+    static let resetCamera = "scope"
+    static let zoomIn = "plus.magnifyingglass"
+    static let zoomOut = "minus.magnifyingglass"
+    static let confirmed = "checkmark.seal.fill"
+    static let disputed = "exclamationmark.triangle.fill"
+    static let chevron = "chevron.right"
+    static let contentUnavailable = "doc.questionmark"
+    static let information = "info.circle"
+}

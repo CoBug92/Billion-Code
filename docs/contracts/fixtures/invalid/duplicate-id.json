@@ -1,0 +1,8 @@
+{
+  "base": "../valid/minimal.json",
+  "operation": "append-copy",
+  "from": "/entities/0",
+  "path": "/entities/-",
+  "expectedLayer": "domain",
+  "expectedError": "duplicate_id"
+}

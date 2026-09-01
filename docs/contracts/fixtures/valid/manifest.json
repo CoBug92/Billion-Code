@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "manifestRevision": 42,
+  "minimumReaderBuild": 1,
+  "publishedAt": "2026-09-01T09:00:00Z",
+  "dataset": {
+    "contentVersion": "2026.09.01+minimal",
+    "url": "https://content.example.org/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json",
+    "byteSize": 12000,
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "mediaOrigin": "https://media.example.org",
+  "allowedHosts": ["content.example.org", "media.example.org"]
+}

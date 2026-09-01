@@ -1,0 +1,7 @@
+{
+  "id": "organization:sample-company",
+  "kind": "company",
+  "name": "Тестовая компания",
+  "shortName": "Компания",
+  "summary": "Kind company отсутствует в schema v1."
+}

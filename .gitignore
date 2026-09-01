@@ -1,0 +1,10 @@
+.DS_Store
+.DerivedData*/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+BillionCode.xcodeproj/
+.bundle/
+scripts/fastlane/report.xml
+scripts/fastlane/Preview.html
+scripts/fastlane/screenshots/

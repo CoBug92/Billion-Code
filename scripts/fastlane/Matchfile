@@ -1,0 +1,7 @@
+git_url("git@github.com:SE-Kostyuchenko/Apple-Certificates.git")
+storage_mode("git")
+git_branch("personal")
+type("appstore")
+team_id(ENV.fetch("TEAM_ID"))
+app_identifier(ENV.fetch("BUNDLE_ID"))
+readonly(false)

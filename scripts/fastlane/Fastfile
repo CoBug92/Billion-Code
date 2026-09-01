@@ -1,0 +1,228 @@
+fastlane_version "2.238.0"
+
+require "dotenv"
+require "fileutils"
+
+Dotenv.load("../.env")
+Dotenv.load
+
+default_platform(:ios)
+
+def required_env(key)
+  value = ENV[key].to_s.strip
+  UI.user_error!("Missing required environment variable #{key}") if value.empty?
+
+  value
+end
+
+def project_root
+  File.expand_path("../..", __dir__)
+end
+
+def project_path
+  File.join(project_root, "#{required_env('PROJECT_NAME')}.xcodeproj")
+end
+
+def scheme
+  required_env("TARGET_NAME")
+end
+
+def derived_data_path(stage)
+  root = ENV["CI_DERIVED_DATA_ROOT"].to_s.strip
+  root = File.join(project_root, ".DerivedData", "CI") if root.empty?
+
+  path = File.join(root, stage)
+  FileUtils.mkdir_p(path)
+  path
+end
+
+def test_destination
+  explicit_destination = ENV["CI_XCODE_DESTINATION"].to_s.strip
+  return explicit_destination unless explicit_destination.empty?
+
+  output = sh(
+    "xcodebuild",
+    "-showdestinations",
+    "-project", project_path,
+    "-scheme", scheme,
+    log: false
+  )
+  match = output.each_line.lazy.map { |line|
+    line.match(/^\s*\{ platform:iOS Simulator,.*?id:([0-9A-F-]+),.*?name:(iPhone[^}]*) \}\s*$/)
+  }.find(&:itself)
+  UI.user_error!("No available iPhone simulator destination found for scheme #{scheme}") unless match
+
+  "platform=iOS Simulator,id=#{match[1]}"
+end
+
+def build_destination
+  explicit_destination = ENV["CI_BUILD_DESTINATION"].to_s.strip
+  return explicit_destination unless explicit_destination.empty?
+
+  "generic/platform=iOS Simulator"
+end
+
+def xcodegen_application_path
+  File.join(project_root, "scripts", "xcodegen", "Application.yml")
+end
+
+def update_xcodegen_setting!(key, value)
+  path = xcodegen_application_path
+  content = File.read(path)
+  found = false
+  updated = content.sub(/^(\s*)#{Regexp.escape(key)}:\s*.+$/) do
+    found = true
+    "#{$1}#{key}: #{value}"
+  end
+  UI.user_error!("Could not find #{key} in #{path}") unless found
+
+  File.write(path, updated)
+end
+
+def current_marketing_version
+  match = File.read(xcodegen_application_path).match(/^\s*MARKETING_VERSION:\s*(.+)$/)
+  UI.user_error!("Could not find MARKETING_VERSION in #{xcodegen_application_path}") unless match
+
+  match[1].strip.delete("'")
+end
+
+def update_project_versioning!(marketing_version:, build_number:)
+  update_xcodegen_setting!("MARKETING_VERSION", marketing_version)
+  update_xcodegen_setting!("CURRENT_PROJECT_VERSION", build_number)
+end
+
+def app_store_connect_api_key_options
+  {
+    key_id: required_env("APP_STORE_CONNECT_API_KEY_ID"),
+    issuer_id: required_env("APP_STORE_CONNECT_API_ISSUER_ID"),
+    key_content: required_env("APP_STORE_CONNECT_API_KEY_CONTENT"),
+    in_house: false,
+    is_key_content_base64: true
+  }
+end
+
+def current_branch
+  ENV["GITHUB_REF_NAME"] || git_branch
+end
+
+def ci_keychain_name
+  explicit_name = ENV["CI_KEYCHAIN_NAME"].to_s.strip
+  return explicit_name unless explicit_name.empty?
+
+  "compound_interest_ci"
+end
+
+def ensure_deploy_branch!
+  branch = current_branch
+  allowed_branches = (ENV["DEPLOY_ALLOWED_BRANCHES"] || "master,main").split(",").map(&:strip)
+  return if allowed_branches.include?(branch)
+
+  UI.user_error!("Deploy is allowed only from #{allowed_branches.join(', ')}. Current branch: #{branch}")
+end
+
+def run_testflight_deploy
+  ensure_deploy_branch!
+
+  app_identifier = required_env("BUNDLE_ID")
+  team_id = required_env("TEAM_ID")
+  UI.important("Deploy: creating App Store Connect API key")
+  api_key = app_store_connect_api_key(app_store_connect_api_key_options)
+
+  UI.important("Deploy: running setup_ci")
+  setup_ci(
+    force: true,
+    keychain_name: ci_keychain_name,
+    timeout: 0
+  )
+  UI.important("Deploy: syncing signing assets with match")
+  match(api_key: api_key)
+
+  UI.important("Deploy: reading current marketing version")
+  marketing_version = current_marketing_version
+  UI.important("Deploy: fetching latest TestFlight build number")
+  latest_build_number = latest_testflight_build_number(
+    api_key: api_key,
+    app_identifier: app_identifier,
+    version: marketing_version,
+    initial_build_number: 0
+  )
+  build_number = latest_build_number + 1
+
+  update_project_versioning!(
+    marketing_version: marketing_version,
+    build_number: build_number
+  )
+
+  UI.important("Deploy: regenerating project files")
+  sh("../generate.sh")
+
+  UI.important("Deploy: archiving app with gym")
+  gym(
+    project: project_path,
+    configuration: "Release",
+    scheme: scheme,
+    silent: false,
+    clean: true,
+    export_method: "app-store",
+    export_team_id: team_id,
+    include_symbols: true,
+    xcargs: "DEVELOPMENT_TEAM=#{team_id}",
+    export_options: {
+      signingStyle: "manual",
+      provisioningProfiles: {
+        app_identifier => "match AppStore #{app_identifier}"
+      }
+    }
+  )
+  UI.important("Deploy: uploading build to TestFlight")
+  upload_to_testflight(api_key: api_key)
+end
+
+platform :ios do
+  desc "Generate resources and Xcode project"
+  lane :generate do
+    sh("../generate.sh")
+  end
+
+  desc "Run SwiftLint"
+  lane :lint do
+    sh("../swiftlint/swiftlint.sh")
+  end
+
+  desc "Run unit tests on the configured simulator"
+  lane :test do
+    sh(
+      "xcodebuild",
+      "-project", project_path,
+      "-scheme", scheme,
+      "-destination", test_destination,
+      "-derivedDataPath", derived_data_path("test"),
+      "CODE_SIGNING_ALLOWED=NO",
+      "test"
+    )
+  end
+
+  desc "Build the Release configuration without signing"
+  lane :build do
+    sh(
+      "xcodebuild",
+      "-project", project_path,
+      "-scheme", scheme,
+      "-configuration", "Release",
+      "-destination", build_destination,
+      "-derivedDataPath", derived_data_path("build"),
+      "CODE_SIGNING_ALLOWED=NO",
+      "build"
+    )
+  end
+
+  desc "Deploy app to TestFlight"
+  lane :deploy_to_tf do
+    run_testflight_deploy
+  end
+
+  desc "Archive and upload a build to TestFlight"
+  lane :deploy do
+    run_testflight_deploy
+  end
+end

@@ -1,0 +1,38 @@
+// swiftlint:disable all
+// Generated using SwiftGen — https://github.com/SwiftGen/SwiftGen
+
+import SwiftUI
+
+{% set accessModifier %}{% if param.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+{% set enumName %}{{param.enumName|default:"Asset"}}{% endset %}
+
+{% macro casesBlock assets %}
+{% for asset in assets %}
+{% if asset.type == "color" %}
+{{accessModifier}} static let {{asset.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = ColorAsset(name: "{{asset.value}}")
+{% elif asset.items %}
+{{accessModifier}} enum {{asset.name|swiftIdentifier:"pretty"|escapeReservedKeywords}} {
+{% filter indent:2," ",true %}{% call casesBlock asset.items %}{% endfilter %}
+}
+{% endif %}
+{% endfor %}
+{% endmacro %}
+
+{{accessModifier}} enum {{enumName}} {
+{% for catalog in catalogs %}
+  {{accessModifier}} enum {{catalog.name|swiftIdentifier:"pretty"|escapeReservedKeywords}} {
+{% if catalog.assets %}
+{% filter indent:4," ",true %}{% call casesBlock catalog.assets %}{% endfilter %}
+{% endif %}
+  }
+{% endfor %}
+}
+
+{{accessModifier}} struct ColorAsset: Sendable {
+  fileprivate let name: String
+
+  @MainActor
+  {{accessModifier}} var swiftUIColor: SwiftUI.Color {
+    SwiftUI.Color(name)
+  }
+}

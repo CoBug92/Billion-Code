@@ -1,0 +1,4 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "https://billion-code.example/schemas/content-v1.schema.json#/$defs/entity"
+}

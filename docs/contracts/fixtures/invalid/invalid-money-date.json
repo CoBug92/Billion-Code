@@ -1,0 +1,15 @@
+{
+  "id": "wealth:sample-founder-2026-09",
+  "personId": "person:sample-founder",
+  "amountUsd": 1.5,
+  "asOf": "2026-13-40",
+  "sourceIds": ["source:sample-primary"],
+  "methodologyNote": "Значения намеренно невалидны.",
+  "components": [
+    {
+      "label": "Компонент",
+      "description": "Fixture",
+      "sourceIds": ["source:sample-primary"]
+    }
+  ]
+}

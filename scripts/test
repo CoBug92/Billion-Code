@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -eu
+. "$(dirname -- "$0")/common.sh"
+
+if [ ! -d "$PROJECT_DIRECTORY/$PROJECT_NAME.xcodeproj" ]; then
+    "$SCRIPTS_DIRECTORY/generate"
+fi
+
+destination="$(select_simulator_destination)"
+printf 'Testing on %s\n' "$destination"
+
+exec xcodebuild \
+    -project "$PROJECT_DIRECTORY/$PROJECT_NAME.xcodeproj" \
+    -scheme "$TARGET_NAME" \
+    -destination "$destination" \
+    -derivedDataPath "$PROJECT_DIRECTORY/.DerivedData" \
+    CODE_SIGNING_ALLOWED=NO \
+    test
+

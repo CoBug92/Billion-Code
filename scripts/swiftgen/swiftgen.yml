@@ -1,0 +1,20 @@
+strings:
+  inputs:
+    - ../../Main/Resources/Localization/ru.lproj/Localizable.strings
+  outputs:
+    - templateName: structured-swift5
+      output: ../../Main/Resources/Generated/Strings+Generated.swift
+      params:
+        enumName: L10n
+        publicAccess: true
+
+xcassets:
+  inputs:
+    - ../../Main/Resources/Assets/Colors.xcassets
+    - ../../Main/Resources/Assets/Images.xcassets
+  outputs:
+    - templatePath: templates/xcassets-swift6.stencil
+      output: ../../Main/Resources/Generated/Assets+Generated.swift
+      params:
+        enumName: Asset
+        publicAccess: true

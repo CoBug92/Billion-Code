@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.09.01+musk-design-spike",
+  "locale": "ru",
+  "generatedAt": "2026-09-01T12:00:00Z",
+  "fallbackEditionId": "edition:2026-09-01-elon-musk",
+  "entities": [
+    { "id": "person:elon-musk", "kind": "person", "name": "Илон Маск", "shortName": "И. Маск", "summary": "Предприниматель, связанный с Tesla, SpaceX, PayPal и ранней OpenAI." },
+    { "id": "person:kimbal-musk", "kind": "person", "name": "Кимбал Маск", "shortName": "К. Маск", "summary": "Предприниматель и член совета директоров Tesla; брат Илона Маска." },
+    { "id": "person:jb-straubel", "kind": "person", "name": "Джей-Би Штробель", "shortName": "Д.-Б. Штробель", "summary": "Один из пяти сооснователей Tesla." },
+    { "id": "person:martin-eberhard", "kind": "person", "name": "Мартин Эберхард", "shortName": "М. Эберхард", "summary": "Один из пяти сооснователей Tesla." },
+    { "id": "person:marc-tarpenning", "kind": "person", "name": "Марк Тарпеннинг", "shortName": "М. Тарпеннинг", "summary": "Один из пяти сооснователей Tesla." },
+    { "id": "person:ian-wright", "kind": "person", "name": "Иэн Райт", "shortName": "И. Райт", "summary": "Один из пяти сооснователей Tesla." },
+    { "id": "person:gwynne-shotwell", "kind": "person", "name": "Гвинн Шотвелл", "shortName": "Г. Шотвелл", "summary": "Президент и COO SpaceX." },
+    { "id": "person:sam-altman", "kind": "person", "name": "Сэм Альтман", "shortName": "С. Альтман", "summary": "Участник группы, объявившей о создании OpenAI в 2015 году." },
+    { "id": "person:greg-brockman", "kind": "person", "name": "Грег Брокман", "shortName": "Г. Брокман", "summary": "Участник группы, объявившей о создании OpenAI в 2015 году." },
+    { "id": "person:ilya-sutskever", "kind": "person", "name": "Илья Суцкевер", "shortName": "И. Суцкевер", "summary": "Участник группы, объявившей о создании OpenAI в 2015 году." },
+    { "id": "person:peter-thiel", "kind": "person", "name": "Питер Тиль", "shortName": "П. Тиль", "summary": "Предприниматель и участник ранней истории PayPal." },
+    { "id": "person:max-levchin", "kind": "person", "name": "Макс Левчин", "shortName": "М. Левчин", "summary": "Предприниматель и участник ранней истории PayPal." },
+    { "id": "person:reid-hoffman", "kind": "person", "name": "Рид Хоффман", "shortName": "Р. Хоффман", "summary": "Предприниматель, связанный с PayPal и ранней OpenAI." },
+    { "id": "organization:zip2", "kind": "organization", "name": "Zip2", "shortName": "Zip2", "summary": "Ранняя интернет-компания братьев Маск." },
+    { "id": "organization:tesla", "kind": "organization", "name": "Tesla", "shortName": "Tesla", "summary": "Компания электротранспорта и энергетики." },
+    { "id": "organization:spacex", "kind": "organization", "name": "SpaceX", "shortName": "SpaceX", "summary": "Аэрокосмическая компания." },
+    { "id": "organization:openai", "kind": "organization", "name": "OpenAI", "shortName": "OpenAI", "summary": "Исследовательская организация в области искусственного интеллекта." },
+    { "id": "organization:paypal", "kind": "organization", "name": "PayPal", "shortName": "PayPal", "summary": "Платёжная компания, сформированная вокруг X.com и Confinity." }
+  ],
+  "profiles": [{
+    "id": "profile:elon-musk", "personId": "person:elon-musk",
+    "story": "Локальный design dataset связывает несколько подтверждённых этапов предпринимательской карьеры Илона Маска. Это не готовый к публикации редакционный профиль.",
+    "startingConditions": "Полная редакционная проверка происхождения капитала и стартовых условий ещё не завершена.",
+    "wealthEstimateIds": ["wealth:elon-musk-2026-09-01"],
+    "timelineEventIds": ["timeline:elon-zip2", "timeline:elon-paypal", "timeline:elon-spacex", "timeline:elon-tesla", "timeline:elon-openai", "timeline:elon-wealth"],
+    "educationRelationshipIds": [], "controversyClaimIds": [], "lastReviewedOn": "2026-09-01"
+  }],
+  "wealthEstimates": [{
+    "id": "wealth:elon-musk-2026-09-01", "personId": "person:elon-musk", "amountUsd": "891900000000", "asOf": "2026-09-01",
+    "sourceIds": ["source:forbes-real-time"],
+    "methodologyNote": "Предварительная точечная оценка Forbes для локальной визуальной проверки; лицензирование и повторная редакционная проверка обязательны до публикации.",
+    "components": [{ "label": "Совокупная оценка", "description": "Состав капитала в design seed не декомпозирован.", "sourceIds": ["source:forbes-real-time"] }]
+  }],
+  "timelineEvents": [
+    { "id": "timeline:elon-zip2", "personId": "person:elon-musk", "occurredOn": "1995-01-01", "category": "company", "title": "Zip2", "description": "Ранний предпринимательский этап.", "claimIds": ["claim:elon-zip2"] },
+    { "id": "timeline:elon-paypal", "personId": "person:elon-musk", "occurredOn": "1999-01-01", "category": "company", "title": "X.com и PayPal", "description": "Этап платёжного бизнеса.", "claimIds": ["claim:elon-paypal"] },
+    { "id": "timeline:elon-spacex", "personId": "person:elon-musk", "occurredOn": "2002-01-01", "category": "company", "title": "SpaceX", "description": "Основание аэрокосмической компании.", "claimIds": ["claim:elon-spacex"] },
+    { "id": "timeline:elon-tesla", "personId": "person:elon-musk", "occurredOn": "2004-01-01", "category": "company", "title": "Tesla", "description": "Вхождение в команду Tesla и статус сооснователя.", "claimIds": ["claim:elon-tesla"] },
+    { "id": "timeline:elon-openai", "personId": "person:elon-musk", "occurredOn": "2015-12-11", "category": "company", "title": "OpenAI", "description": "Участие в объявлении OpenAI.", "claimIds": ["claim:elon-openai"] },
+    { "id": "timeline:elon-wealth", "personId": "person:elon-musk", "occurredOn": "2026-09-01", "category": "wealth", "title": "Предварительная оценка состояния", "description": "Точечная оценка для design spike.", "claimIds": ["claim:elon-wealth"] }
+  ],
+  "claims": [
+    { "id": "claim:elon-zip2", "subjectId": "relationship:elon-zip2", "kind": "relationship", "text": "Илон Маск связан с основанием Zip2.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:kimbal-zip2", "subjectId": "relationship:kimbal-zip2", "kind": "relationship", "text": "Кимбал Маск связан с Zip2.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-kimbal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-kimbal-family", "subjectId": "relationship:elon-kimbal-family", "kind": "relationship", "text": "Кимбал Маск является братом Илона Маска.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-kimbal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-tesla", "subjectId": "relationship:elon-tesla", "kind": "relationship", "text": "Илон Маск — один из пяти сооснователей Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:jb-tesla", "subjectId": "relationship:jb-tesla", "kind": "relationship", "text": "Джей-Би Штробель — один из пяти сооснователей Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:martin-tesla", "subjectId": "relationship:martin-tesla", "kind": "relationship", "text": "Мартин Эберхард — один из пяти сооснователей Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:marc-tesla", "subjectId": "relationship:marc-tesla", "kind": "relationship", "text": "Марк Тарпеннинг — один из пяти сооснователей Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:ian-tesla", "subjectId": "relationship:ian-tesla", "kind": "relationship", "text": "Иэн Райт — один из пяти сооснователей Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:kimbal-tesla", "subjectId": "relationship:kimbal-tesla", "kind": "relationship", "text": "Кимбал Маск состоит в совете директоров Tesla.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-kimbal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-spacex", "subjectId": "relationship:elon-spacex", "kind": "relationship", "text": "Илон Маск основал SpaceX и возглавляет компанию.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:spacex-leadership"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:gwynne-spacex", "subjectId": "relationship:gwynne-spacex", "kind": "relationship", "text": "Гвинн Шотвелл — президент и COO SpaceX.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:spacex-leadership"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-openai", "subjectId": "relationship:elon-openai", "kind": "relationship", "text": "Илон Маск указан среди co-chairs OpenAI при её представлении.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:openai-intro"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:sam-openai", "subjectId": "relationship:sam-openai", "kind": "relationship", "text": "Сэм Альтман указан среди co-chairs OpenAI при её представлении.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:openai-intro"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:greg-openai", "subjectId": "relationship:greg-openai", "kind": "relationship", "text": "Грег Брокман указан среди founding members OpenAI.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:openai-intro"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:ilya-openai", "subjectId": "relationship:ilya-openai", "kind": "relationship", "text": "Илья Суцкевер указан research director OpenAI при её представлении.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:openai-intro"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:reid-openai", "subjectId": "relationship:reid-openai", "kind": "relationship", "text": "Рид Хоффман указан среди donors OpenAI при её представлении.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:openai-intro"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-paypal", "subjectId": "relationship:elon-paypal", "kind": "relationship", "text": "Илон Маск участвовал в истории компании, ставшей PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:peter-paypal", "subjectId": "relationship:peter-paypal", "kind": "relationship", "text": "Питер Тиль участвовал в ранней истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:max-paypal", "subjectId": "relationship:max-paypal", "kind": "relationship", "text": "Макс Левчин участвовал в ранней истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:reid-paypal", "subjectId": "relationship:reid-paypal", "kind": "relationship", "text": "Рид Хоффман участвовал в истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
+    { "id": "claim:elon-wealth", "subjectId": "person:elon-musk", "kind": "wealth", "text": "Forbes показывал предварительную оценку состояния $891,9 млрд.", "riskLevel": "material", "sourceIds": ["source:forbes-real-time"], "lastReviewedOn": "2026-09-01" }
+  ],
+  "sources": [
+    { "id": "source:tesla-timeline", "tier": "primary", "title": "Elon Musk: CEO of the Year", "publisher": "Tesla", "authors": [], "url": "https://www.tesla.com/sites/default/files/blog_attachments/elon_musk_ceo_of_the_year.pdf", "language": "en", "accessedOn": "2026-09-01" },
+    { "id": "source:spacex-leadership", "tier": "primary", "title": "Leadership", "publisher": "SpaceX", "authors": [], "url": "https://ir.spacex.com/leadership/", "language": "en", "accessedOn": "2026-09-01" },
+    { "id": "source:openai-intro", "tier": "primary", "title": "Introducing OpenAI", "publisher": "OpenAI", "authors": [], "publishedOn": "2015-12-11", "url": "https://openai.com/index/introducing-openai/", "language": "en", "accessedOn": "2026-09-01" },
+    { "id": "source:tesla-kimbal", "tier": "primary", "title": "Kimbal Musk", "publisher": "Tesla Investor Relations", "authors": [], "url": "https://ir.tesla.com/corporate/kimbal-musk", "language": "en", "accessedOn": "2026-09-01" },
+    { "id": "source:sequoia-paypal", "tier": "reputable-reporting", "title": "Crucible Moments: PayPal", "publisher": "Sequoia Capital", "authors": [], "url": "https://sequoiacap.com/podcast/crucible-moments-paypal", "language": "en", "accessedOn": "2026-09-01" },
+    { "id": "source:forbes-real-time", "tier": "reputable-reporting", "title": "Real-Time Billionaires", "publisher": "Forbes", "authors": [], "url": "https://www.forbes.com/real-time-billionaires/", "language": "en", "accessedOn": "2026-09-01" }
+  ],
+  "relationships": [
+    { "id": "relationship:elon-kimbal-family", "sourceEntityId": "person:elon-musk", "targetEntityId": "person:kimbal-musk", "kind": "family", "direction": "undirected", "status": "confirmed", "claimIds": ["claim:elon-kimbal-family"] },
+    { "id": "relationship:elon-zip2", "sourceEntityId": "person:elon-musk", "targetEntityId": "organization:zip2", "kind": "founded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:elon-zip2"] },
+    { "id": "relationship:kimbal-zip2", "sourceEntityId": "person:kimbal-musk", "targetEntityId": "organization:zip2", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:kimbal-zip2"] },
+    { "id": "relationship:elon-tesla", "sourceEntityId": "person:elon-musk", "targetEntityId": "organization:tesla", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:elon-tesla"] },
+    { "id": "relationship:jb-tesla", "sourceEntityId": "person:jb-straubel", "targetEntityId": "organization:tesla", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:jb-tesla"] },
+    { "id": "relationship:martin-tesla", "sourceEntityId": "person:martin-eberhard", "targetEntityId": "organization:tesla", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:martin-tesla"] },
+    { "id": "relationship:marc-tesla", "sourceEntityId": "person:marc-tarpenning", "targetEntityId": "organization:tesla", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:marc-tesla"] },
+    { "id": "relationship:ian-tesla", "sourceEntityId": "person:ian-wright", "targetEntityId": "organization:tesla", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:ian-tesla"] },
+    { "id": "relationship:kimbal-tesla", "sourceEntityId": "person:kimbal-musk", "targetEntityId": "organization:tesla", "kind": "board_role", "direction": "directed", "status": "confirmed", "claimIds": ["claim:kimbal-tesla"] },
+    { "id": "relationship:elon-spacex", "sourceEntityId": "person:elon-musk", "targetEntityId": "organization:spacex", "kind": "founded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:elon-spacex"] },
+    { "id": "relationship:gwynne-spacex", "sourceEntityId": "person:gwynne-shotwell", "targetEntityId": "organization:spacex", "kind": "executive_role", "direction": "directed", "status": "confirmed", "claimIds": ["claim:gwynne-spacex"] },
+    { "id": "relationship:elon-openai", "sourceEntityId": "person:elon-musk", "targetEntityId": "organization:openai", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:elon-openai"] },
+    { "id": "relationship:sam-openai", "sourceEntityId": "person:sam-altman", "targetEntityId": "organization:openai", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:sam-openai"] },
+    { "id": "relationship:greg-openai", "sourceEntityId": "person:greg-brockman", "targetEntityId": "organization:openai", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:greg-openai"] },
+    { "id": "relationship:ilya-openai", "sourceEntityId": "person:ilya-sutskever", "targetEntityId": "organization:openai", "kind": "employment", "direction": "directed", "status": "confirmed", "claimIds": ["claim:ilya-openai"] },
+    { "id": "relationship:reid-openai", "sourceEntityId": "person:reid-hoffman", "targetEntityId": "organization:openai", "kind": "philanthropy", "direction": "directed", "status": "confirmed", "claimIds": ["claim:reid-openai"] },
+    { "id": "relationship:elon-paypal", "sourceEntityId": "person:elon-musk", "targetEntityId": "organization:paypal", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:elon-paypal"] },
+    { "id": "relationship:peter-paypal", "sourceEntityId": "person:peter-thiel", "targetEntityId": "organization:paypal", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:peter-paypal"] },
+    { "id": "relationship:max-paypal", "sourceEntityId": "person:max-levchin", "targetEntityId": "organization:paypal", "kind": "cofounded", "direction": "directed", "status": "confirmed", "claimIds": ["claim:max-paypal"] },
+    { "id": "relationship:reid-paypal", "sourceEntityId": "person:reid-hoffman", "targetEntityId": "organization:paypal", "kind": "employment", "direction": "directed", "status": "confirmed", "claimIds": ["claim:reid-paypal"] }
+  ],
+  "editions": [{
+    "id": "edition:2026-09-01-elon-musk", "date": "2026-09-01", "featuredPersonId": "person:elon-musk",
+    "title": "Кластер Илона Маска", "thesis": "Подтверждённые совместные контексты, не утверждения о личном знакомстве.",
+    "visibleEntityIds": ["person:elon-musk", "person:kimbal-musk", "person:jb-straubel", "person:martin-eberhard", "person:marc-tarpenning", "person:ian-wright", "person:gwynne-shotwell", "person:sam-altman", "person:greg-brockman", "person:ilya-sutskever", "person:peter-thiel", "person:max-levchin", "person:reid-hoffman", "organization:zip2", "organization:tesla", "organization:spacex", "organization:openai", "organization:paypal"],
+    "visibleRelationshipIds": ["relationship:elon-kimbal-family", "relationship:elon-zip2", "relationship:kimbal-zip2", "relationship:elon-tesla", "relationship:jb-tesla", "relationship:martin-tesla", "relationship:marc-tesla", "relationship:ian-tesla", "relationship:kimbal-tesla", "relationship:elon-spacex", "relationship:gwynne-spacex", "relationship:elon-openai", "relationship:sam-openai", "relationship:greg-openai", "relationship:ilya-openai", "relationship:reid-openai", "relationship:elon-paypal", "relationship:peter-paypal", "relationship:max-paypal", "relationship:reid-paypal"]
+  }],
+  "graphLayout": {
+    "layoutVersion": 1, "width": 10000, "height": 10000,
+    "positions": [
+      { "entityId": "person:elon-musk", "x": 5000, "y": 5000 }, { "entityId": "person:kimbal-musk", "x": 3800, "y": 4300 },
+      { "entityId": "person:jb-straubel", "x": 6500, "y": 3600 }, { "entityId": "person:martin-eberhard", "x": 7300, "y": 4500 },
+      { "entityId": "person:marc-tarpenning", "x": 7200, "y": 5700 }, { "entityId": "person:ian-wright", "x": 6400, "y": 6500 },
+      { "entityId": "person:gwynne-shotwell", "x": 4700, "y": 7100 }, { "entityId": "person:sam-altman", "x": 3400, "y": 6800 },
+      { "entityId": "person:greg-brockman", "x": 2400, "y": 6100 }, { "entityId": "person:ilya-sutskever", "x": 2100, "y": 4900 },
+      { "entityId": "person:peter-thiel", "x": 2700, "y": 3400 }, { "entityId": "person:max-levchin", "x": 3800, "y": 2500 },
+      { "entityId": "person:reid-hoffman", "x": 5400, "y": 2300 }, { "entityId": "organization:zip2", "x": 4300, "y": 3900 },
+      { "entityId": "organization:tesla", "x": 6400, "y": 5000 }, { "entityId": "organization:spacex", "x": 5200, "y": 6300 },
+      { "entityId": "organization:openai", "x": 3200, "y": 5700 }, { "entityId": "organization:paypal", "x": 3300, "y": 3600 }
+    ]
+  }
+}

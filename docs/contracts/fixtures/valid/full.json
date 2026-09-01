@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.09.01+full",
+  "locale": "ru",
+  "generatedAt": "2026-09-01T10:00:00Z",
+  "fallbackEditionId": "edition:2026-09-01-sample-founder",
+  "entities": [
+    {
+      "id": "person:sample-founder",
+      "kind": "person",
+      "name": "Тестовый основатель",
+      "shortName": "Основатель",
+      "summary": "Вымышленная персона для полного fixture.",
+      "media": {
+        "url": "https://media.example.org/sample-founder.jpg",
+        "sourcePageUrl": "https://example.org/sample-founder-license",
+        "mimeType": "image/jpeg",
+        "width": 1200,
+        "height": 1200,
+        "byteSize": 120000,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "license": "cc-by-4.0",
+        "author": "Example Author",
+        "attribution": "Example Author, CC BY 4.0"
+      }
+    },
+    {
+      "id": "person:sample-partner",
+      "kind": "person",
+      "name": "Тестовый партнёр",
+      "shortName": "Партнёр",
+      "summary": "Вторая вымышленная персона для disputed relationship."
+    },
+    {
+      "id": "organization:sample-company",
+      "kind": "organization",
+      "name": "Тестовая компания",
+      "shortName": "Компания",
+      "summary": "Вымышленная компания."
+    },
+    {
+      "id": "university:sample-university",
+      "kind": "university",
+      "name": "Тестовый университет",
+      "shortName": "Университет",
+      "summary": "Вымышленное учебное заведение."
+    }
+  ],
+  "profiles": [
+    {
+      "id": "profile:sample-founder",
+      "personId": "person:sample-founder",
+      "story": "Полный вымышленный сюжет, проверяющий transport-поля.",
+      "startingConditions": "Вымышленные стартовые условия.",
+      "wealthEstimateIds": ["wealth:sample-founder-2026-09"],
+      "timelineEventIds": [
+        "timeline:sample-founder-event-1",
+        "timeline:sample-founder-event-2",
+        "timeline:sample-founder-event-3",
+        "timeline:sample-founder-event-4",
+        "timeline:sample-founder-event-5",
+        "timeline:sample-founder-event-6"
+      ],
+      "educationRelationshipIds": ["relationship:sample-education"],
+      "controversyClaimIds": [],
+      "lastReviewedOn": "2026-09-01"
+    }
+  ],
+  "wealthEstimates": [
+    {
+      "id": "wealth:sample-founder-2026-09",
+      "personId": "person:sample-founder",
+      "amountUsd": "1500000000",
+      "asOf": "2026-09-01",
+      "sourceIds": ["source:sample-primary", "source:sample-reporting"],
+      "methodologyNote": "Fixture не является реальной оценкой состояния.",
+      "components": [
+        {
+          "label": "Доля в компании",
+          "description": "Вымышленный публичный компонент.",
+          "amountUsd": "1200000000",
+          "sourceIds": ["source:sample-primary"]
+        },
+        {
+          "label": "Другие активы",
+          "description": "Вымышленный оценочный компонент.",
+          "sourceIds": ["source:sample-reporting"]
+        }
+      ]
+    }
+  ],
+  "timelineEvents": [
+    { "id": "timeline:sample-founder-event-1", "personId": "person:sample-founder", "occurredOn": "2000-01-01", "category": "origin", "title": "Начало", "description": "Fixture 1.", "claimIds": ["claim:sample-founded-company"] },
+    { "id": "timeline:sample-founder-event-2", "personId": "person:sample-founder", "occurredOn": "2001-06-01", "category": "education", "title": "Образование", "description": "Fixture 2.", "claimIds": ["claim:sample-education"] },
+    { "id": "timeline:sample-founder-event-3", "personId": "person:sample-founder", "occurredOn": "2003-01-01", "category": "career", "title": "Работа", "description": "Fixture 3.", "claimIds": ["claim:sample-founded-company"] },
+    { "id": "timeline:sample-founder-event-4", "personId": "person:sample-founder", "occurredOn": "2004-01-01", "category": "company", "title": "Компания", "description": "Fixture 4.", "claimIds": ["claim:sample-founded-company"] },
+    { "id": "timeline:sample-founder-event-5", "personId": "person:sample-founder", "occurredOn": "2005-01-01", "category": "wealth", "title": "Оценка", "description": "Fixture 5.", "claimIds": ["claim:sample-founded-company"] },
+    { "id": "timeline:sample-founder-event-6", "personId": "person:sample-founder", "occurredOn": "2006-01-01", "category": "controversy", "title": "Спор", "description": "Fixture 6.", "claimIds": ["claim:sample-cofounder-position-a", "claim:sample-cofounder-position-b"] }
+  ],
+  "claims": [
+    {
+      "id": "claim:sample-founded-company",
+      "subjectId": "relationship:sample-founded-company",
+      "kind": "relationship",
+      "text": "Вымышленная персона основала вымышленную компанию.",
+      "riskLevel": "routine",
+      "relationshipPosition": "supports",
+      "sourceIds": ["source:sample-primary"],
+      "lastReviewedOn": "2026-09-01"
+    },
+    {
+      "id": "claim:sample-education",
+      "subjectId": "relationship:sample-education",
+      "kind": "education",
+      "text": "Вымышленная персона получила вымышленную степень.",
+      "riskLevel": "routine",
+      "relationshipPosition": "supports",
+      "sourceIds": ["source:sample-primary"],
+      "lastReviewedOn": "2026-09-01"
+    },
+    {
+      "id": "claim:sample-cofounder-position-a",
+      "subjectId": "relationship:sample-cofounder-dispute",
+      "kind": "relationship",
+      "text": "Источник A называет второго человека сооснователем.",
+      "riskLevel": "material",
+      "relationshipPosition": "supports",
+      "sourceIds": ["source:sample-primary"],
+      "lastReviewedOn": "2026-09-01"
+    },
+    {
+      "id": "claim:sample-cofounder-position-b",
+      "subjectId": "relationship:sample-cofounder-dispute",
+      "kind": "relationship",
+      "text": "Источник B оспаривает статус сооснователя.",
+      "riskLevel": "material",
+      "relationshipPosition": "challenges",
+      "sourceIds": ["source:sample-reporting"],
+      "lastReviewedOn": "2026-09-01"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:sample-primary",
+      "tier": "primary",
+      "title": "Вымышленный первичный источник",
+      "publisher": "Example Registry",
+      "authors": [],
+      "publishedOn": "2026-08-01",
+      "url": "https://example.org/primary",
+      "language": "ru",
+      "accessedOn": "2026-09-01"
+    },
+    {
+      "id": "source:sample-reporting",
+      "tier": "reputable-reporting",
+      "title": "Вымышленная независимая публикация",
+      "publisher": "Example News",
+      "authors": ["Example Reporter"],
+      "publishedOn": "2026-08-15",
+      "url": "https://example.org/reporting",
+      "language": "en",
+      "accessedOn": "2026-09-01"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "relationship:sample-founded-company",
+      "sourceEntityId": "person:sample-founder",
+      "targetEntityId": "organization:sample-company",
+      "kind": "founded",
+      "direction": "directed",
+      "status": "confirmed",
+      "startDate": "2004-01-01",
+      "claimIds": ["claim:sample-founded-company"]
+    },
+    {
+      "id": "relationship:sample-education",
+      "sourceEntityId": "person:sample-founder",
+      "targetEntityId": "university:sample-university",
+      "kind": "education",
+      "direction": "directed",
+      "status": "confirmed",
+      "startDate": "2001-01-01",
+      "endDate": "2001-06-01",
+      "claimIds": ["claim:sample-education"],
+      "educationDetail": { "status": "degree", "degreeName": "Тестовая степень" }
+    },
+    {
+      "id": "relationship:sample-cofounder-dispute",
+      "sourceEntityId": "person:sample-founder",
+      "targetEntityId": "person:sample-partner",
+      "kind": "cofounded",
+      "direction": "undirected",
+      "status": "disputed",
+      "claimIds": ["claim:sample-cofounder-position-a", "claim:sample-cofounder-position-b"]
+    }
+  ],
+  "editions": [
+    {
+      "id": "edition:2026-09-01-sample-founder",
+      "date": "2026-09-01",
+      "featuredPersonId": "person:sample-founder",
+      "title": "Полный тестовый выпуск",
+      "thesis": "Fixture демонстрирует подтверждённые, образовательные и оспариваемые связи.",
+      "visibleEntityIds": ["person:sample-founder", "person:sample-partner", "organization:sample-company", "university:sample-university"],
+      "visibleRelationshipIds": ["relationship:sample-founded-company", "relationship:sample-education", "relationship:sample-cofounder-dispute"]
+    }
+  ],
+  "graphLayout": {
+    "layoutVersion": 1,
+    "width": 10000,
+    "height": 10000,
+    "positions": [
+      { "entityId": "person:sample-founder", "x": 5000, "y": 5000 },
+      { "entityId": "person:sample-partner", "x": 3500, "y": 5000 },
+      { "entityId": "organization:sample-company", "x": 6500, "y": 5000 },
+      { "entityId": "university:sample-university", "x": 5000, "y": 3500 }
+    ]
+  }
+}

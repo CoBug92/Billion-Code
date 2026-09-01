@@ -1,0 +1,7 @@
+{
+  "base": "../valid/minimal.json",
+  "operation": "remove",
+  "path": "/graphLayout/positions/1",
+  "expectedLayer": "domain",
+  "expectedError": "missing_layout_position"
+}

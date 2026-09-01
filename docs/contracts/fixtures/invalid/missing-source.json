@@ -1,0 +1,9 @@
+{
+  "id": "claim:sample-without-source",
+  "subjectId": "person:sample-founder",
+  "kind": "biography",
+  "text": "Claim без доказательства.",
+  "riskLevel": "routine",
+  "sourceIds": [],
+  "lastReviewedOn": "2026-09-01"
+}

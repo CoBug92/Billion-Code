@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -eu
+SCRIPTS_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+. "$SCRIPTS_DIRECTORY/common.sh"
+
+actual_version="$(xcodegen --version | awk '{print $2}')"
+if [ "$actual_version" != "2.46.0" ]; then
+    printf 'Expected XcodeGen 2.46.0, found %s\n' "$actual_version" >&2
+    exit 1
+fi
+
+cd "$PROJECT_DIRECTORY"
+exec xcodegen generate \
+    --spec "$SCRIPTS_DIRECTORY/xcodegen/project.yml" \
+    --project "$PROJECT_DIRECTORY" \
+    --project-root "$PROJECT_DIRECTORY"

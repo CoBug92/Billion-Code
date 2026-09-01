@@ -1,0 +1,6 @@
+require 'dotenv'
+
+Dotenv.load('../.env')
+Dotenv.load
+
+app_identifier(ENV["BUNDLE_ID"])

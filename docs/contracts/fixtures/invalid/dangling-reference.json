@@ -1,0 +1,8 @@
+{
+  "base": "../valid/minimal.json",
+  "operation": "replace",
+  "path": "/relationships/0/targetEntityId",
+  "value": "organization:missing-company",
+  "expectedLayer": "domain",
+  "expectedError": "dangling_reference"
+}

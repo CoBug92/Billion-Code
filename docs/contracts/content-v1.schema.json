@@ -1,0 +1,466 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://billion-code.example/schemas/content-v1.schema.json",
+  "title": "BillionCode Content Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contentVersion",
+    "locale",
+    "generatedAt",
+    "fallbackEditionId",
+    "entities",
+    "profiles",
+    "wealthEstimates",
+    "timelineEvents",
+    "claims",
+    "sources",
+    "relationships",
+    "editions",
+    "graphLayout"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contentVersion": {
+      "type": "string",
+      "pattern": "^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\+[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "locale": { "const": "ru" },
+    "generatedAt": { "$ref": "#/$defs/timestamp" },
+    "fallbackEditionId": { "$ref": "#/$defs/editionId" },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/profile" }
+    },
+    "wealthEstimates": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/wealthEstimate" }
+    },
+    "timelineEvents": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/timelineEvent" }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/claim" }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "relationships": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/relationship" }
+    },
+    "editions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/edition" }
+    },
+    "graphLayout": { "$ref": "#/$defs/graphLayout" }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "entityId": {
+      "type": "string",
+      "pattern": "^(person|organization|university|foundation|family|deal|event):[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "personId": {
+      "type": "string",
+      "pattern": "^person:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "profileId": {
+      "type": "string",
+      "pattern": "^profile:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "claimId": {
+      "type": "string",
+      "pattern": "^claim:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^source:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "relationshipId": {
+      "type": "string",
+      "pattern": "^relationship:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "wealthId": {
+      "type": "string",
+      "pattern": "^wealth:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "timelineId": {
+      "type": "string",
+      "pattern": "^timeline:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "editionId": {
+      "type": "string",
+      "pattern": "^edition:[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"
+    },
+    "amountUsd": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "pattern": "^https://[^\\s]+$"
+    },
+    "nonEmptyText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "sourcePageUrl",
+        "mimeType",
+        "width",
+        "height",
+        "byteSize",
+        "sha256",
+        "license",
+        "author",
+        "attribution"
+      ],
+      "properties": {
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "sourcePageUrl": { "$ref": "#/$defs/httpsUrl" },
+        "mimeType": { "enum": ["image/jpeg", "image/png", "image/webp"] },
+        "width": { "type": "integer", "minimum": 1, "maximum": 8192 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 8192 },
+        "byteSize": { "type": "integer", "minimum": 1, "maximum": 2097152 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "license": {
+          "enum": ["cc0", "cc-by-4.0", "cc-by-sa-4.0", "public-domain", "proprietary-permission"]
+        },
+        "author": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "attribution": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "name", "shortName", "summary"],
+      "properties": {
+        "id": { "$ref": "#/$defs/entityId" },
+        "kind": {
+          "enum": ["person", "organization", "university", "foundation", "family", "deal", "event"]
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "shortName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "media": { "$ref": "#/$defs/media" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "personId",
+        "story",
+        "startingConditions",
+        "wealthEstimateIds",
+        "timelineEventIds",
+        "educationRelationshipIds",
+        "controversyClaimIds",
+        "lastReviewedOn"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/profileId" },
+        "personId": { "$ref": "#/$defs/personId" },
+        "story": { "$ref": "#/$defs/nonEmptyText" },
+        "startingConditions": { "$ref": "#/$defs/nonEmptyText" },
+        "wealthEstimateIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/wealthId" }
+        },
+        "timelineEventIds": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/timelineId" }
+        },
+        "educationRelationshipIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/relationshipId" }
+        },
+        "controversyClaimIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/claimId" }
+        },
+        "lastReviewedOn": { "$ref": "#/$defs/date" }
+      }
+    },
+    "wealthComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "description", "sourceIds"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "amountUsd": { "$ref": "#/$defs/amountUsd" },
+        "sourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceId" }
+        }
+      }
+    },
+    "wealthEstimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "personId", "amountUsd", "asOf", "sourceIds", "methodologyNote", "components"],
+      "properties": {
+        "id": { "$ref": "#/$defs/wealthId" },
+        "personId": { "$ref": "#/$defs/personId" },
+        "amountUsd": { "$ref": "#/$defs/amountUsd" },
+        "asOf": { "$ref": "#/$defs/date" },
+        "sourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceId" }
+        },
+        "methodologyNote": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/wealthComponent" }
+        }
+      }
+    },
+    "timelineEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "personId", "occurredOn", "category", "title", "description", "claimIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/timelineId" },
+        "personId": { "$ref": "#/$defs/personId" },
+        "occurredOn": { "$ref": "#/$defs/date" },
+        "category": {
+          "enum": ["origin", "education", "career", "company", "wealth", "deal", "philanthropy", "controversy"]
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "claimIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/claimId" }
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "subjectId", "kind", "text", "riskLevel", "sourceIds", "lastReviewedOn"],
+      "properties": {
+        "id": { "$ref": "#/$defs/claimId" },
+        "subjectId": {
+          "type": "string",
+          "pattern": "^(person|organization|university|foundation|family|deal|event|relationship):[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "kind": { "enum": ["biography", "wealth", "education", "ownership", "relationship", "controversy"] },
+        "text": { "type": "string", "minLength": 1, "maxLength": 3000 },
+        "riskLevel": { "enum": ["routine", "material", "sensitive"] },
+        "relationshipPosition": { "enum": ["supports", "challenges"] },
+        "sourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceId" }
+        },
+        "lastReviewedOn": { "$ref": "#/$defs/date" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["subjectId"],
+            "properties": { "subjectId": { "pattern": "^relationship:" } }
+          },
+          "then": { "required": ["relationshipPosition"] },
+          "else": { "not": { "required": ["relationshipPosition"] } }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tier", "title", "publisher", "authors", "url", "language", "accessedOn"],
+      "properties": {
+        "id": { "$ref": "#/$defs/sourceId" },
+        "tier": { "enum": ["primary", "authoritative-registry", "reputable-reporting", "structured-open-data"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "publisher": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "authors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        },
+        "publishedOn": { "$ref": "#/$defs/date" },
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "language": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+        "accessedOn": { "$ref": "#/$defs/date" }
+      }
+    },
+    "educationDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["attended", "graduated", "degree"] },
+        "degreeName": { "type": "string", "minLength": 1, "maxLength": 300 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "degree" } } },
+          "then": { "required": ["degreeName"] }
+        }
+      ]
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sourceEntityId", "targetEntityId", "kind", "direction", "status", "claimIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/relationshipId" },
+        "sourceEntityId": { "$ref": "#/$defs/entityId" },
+        "targetEntityId": { "$ref": "#/$defs/entityId" },
+        "kind": {
+          "enum": [
+            "family",
+            "founded",
+            "cofounded",
+            "employment",
+            "executive_role",
+            "board_role",
+            "ownership",
+            "investment",
+            "deal",
+            "education",
+            "philanthropy",
+            "legal_dispute"
+          ]
+        },
+        "direction": { "enum": ["directed", "undirected"] },
+        "status": { "enum": ["confirmed", "disputed"] },
+        "startDate": { "$ref": "#/$defs/date" },
+        "endDate": { "$ref": "#/$defs/date" },
+        "claimIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/claimId" }
+        },
+        "educationDetail": { "$ref": "#/$defs/educationDetail" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "disputed" } } },
+          "then": { "properties": { "claimIds": { "minItems": 2 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "education" } } },
+          "then": { "required": ["educationDetail"] },
+          "else": { "not": { "required": ["educationDetail"] } }
+        }
+      ]
+    },
+    "edition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "date", "featuredPersonId", "title", "thesis", "visibleEntityIds", "visibleRelationshipIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/editionId" },
+        "date": { "$ref": "#/$defs/date" },
+        "featuredPersonId": { "$ref": "#/$defs/personId" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "thesis": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "visibleEntityIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/entityId" }
+        },
+        "visibleRelationshipIds": {
+          "type": "array",
+          "maxItems": 80,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/relationshipId" }
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entityId", "x", "y"],
+      "properties": {
+        "entityId": { "$ref": "#/$defs/entityId" },
+        "x": { "type": "number", "minimum": 0, "maximum": 10000 },
+        "y": { "type": "number", "minimum": 0, "maximum": 10000 }
+      }
+    },
+    "graphLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layoutVersion", "width", "height", "positions"],
+      "properties": {
+        "layoutVersion": { "type": "integer", "minimum": 1 },
+        "width": { "const": 10000 },
+        "height": { "const": 10000 },
+        "positions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/position" }
+        }
+      }
+    }
+  }
+}

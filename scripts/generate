@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -eu
+. "$(dirname -- "$0")/common.sh"
+
+"$SCRIPTS_DIRECTORY/swiftgen/run"
+"$SCRIPTS_DIRECTORY/xcodegen/run"
+
