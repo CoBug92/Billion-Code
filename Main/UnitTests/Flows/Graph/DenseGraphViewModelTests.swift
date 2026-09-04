@@ -1,3 +1,4 @@
+import CoreGraphics
 import Testing
 @testable import BillionCode
 
@@ -77,5 +78,41 @@ struct DenseGraphViewModelTests {
 
         #expect(viewModel.selectedNodeID == "person:sam-altman")
         #expect(!viewModel.canNavigateBack)
+    }
+
+    @Test("Node filters hide nodes and their edges")
+    func nodeKindFilters() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        let viewport = CGSize(width: 10_000, height: 10_000)
+
+        viewModel.setNodeKind(.person, isVisible: false)
+
+        #expect(!viewModel.visibleNodes(in: viewport).contains { $0.kind == .person })
+        #expect(!viewModel.graph.edges.contains { edge in
+            viewModel.isEdgeVisible(edge)
+                && (viewModel.graph.node(id: edge.sourceID)?.kind == .person
+                    || viewModel.graph.node(id: edge.targetID)?.kind == .person)
+        })
+    }
+
+    @Test("Hiding the selected node kind clears selection")
+    func hidingSelectedKindClearsSelection() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        viewModel.selectNode(id: "person:elon-musk")
+
+        viewModel.setNodeKind(.person, isVisible: false)
+
+        #expect(viewModel.selectedNodeID == nil)
+    }
+
+    @Test("Search respects node filters")
+    func searchRespectsFilters() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+
+        #expect(viewModel.searchResults(matching: "Tesla").contains { $0.id == "organization:tesla" })
+
+        viewModel.setNodeKind(.organization, isVisible: false)
+
+        #expect(viewModel.searchResults(matching: "Tesla").isEmpty)
     }
 }

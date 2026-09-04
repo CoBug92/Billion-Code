@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Observation
 
 @MainActor
@@ -17,6 +18,7 @@ final class DenseGraphViewModel {
     private(set) var directlyConnectedNodeIDs = Set<GraphNode.ID>()
     private(set) var highlightedEdgeIDs = Set<DenseGraphEdge.ID>()
     private(set) var navigationHistory: [NavigationEntry] = []
+    private(set) var hiddenNodeKinds = Set<GraphEntityKind>()
 
     private let nodesByID: [GraphNode.ID: GraphNode]
     private let edgesByNodeID: [GraphNode.ID: [DenseGraphEdge]]
@@ -55,6 +57,36 @@ final class DenseGraphViewModel {
         !navigationHistory.isEmpty
     }
 
+    func isNodeKindVisible(_ kind: GraphEntityKind) -> Bool {
+        !hiddenNodeKinds.contains(kind)
+    }
+
+    func setNodeKind(_ kind: GraphEntityKind, isVisible: Bool) {
+        if isVisible {
+            hiddenNodeKinds.remove(kind)
+        } else {
+            hiddenNodeKinds.insert(kind)
+            if selectedNode?.kind == kind {
+                clearSelection()
+            }
+        }
+    }
+
+    func searchResults(matching query: String, limit: Int = 8) -> [GraphNode] {
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedQuery.isEmpty else { return [] }
+
+        return graph.nodes
+            .filter { node in
+                isNodeKindVisible(node.kind)
+                    && (node.name.localizedCaseInsensitiveContains(normalizedQuery)
+                        || node.shortName.localizedCaseInsensitiveContains(normalizedQuery))
+            }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            .prefix(limit)
+            .map { $0 }
+    }
+
     // MARK: - Selection
 
     func selectNode(id: GraphNode.ID) {
@@ -69,7 +101,11 @@ final class DenseGraphViewModel {
     }
 
     func navigate(to id: GraphNode.ID) {
-        guard let node = nodesByID[id], selectedNodeID != id else { return }
+        guard
+            let node = nodesByID[id],
+            isNodeKindVisible(node.kind),
+            selectedNodeID != id
+        else { return }
         if let selectedNodeID {
             navigationHistory.append(NavigationEntry(nodeID: selectedNodeID, camera: camera))
         }
@@ -163,12 +199,20 @@ final class DenseGraphViewModel {
 
     func visibleNodes(in viewport: CGSize, overscan: CGFloat = 80) -> [GraphNode] {
         graph.nodes.filter { node in
+            guard isNodeKindVisible(node.kind) else { return false }
             let point = camera.screenPoint(for: node.position, viewport: viewport)
             return point.x >= -overscan
                 && point.y >= -overscan
                 && point.x <= viewport.width + overscan
                 && point.y <= viewport.height + overscan
         }
+    }
+
+    func isEdgeVisible(_ edge: DenseGraphEdge) -> Bool {
+        guard let source = nodesByID[edge.sourceID], let target = nodesByID[edge.targetID] else {
+            return false
+        }
+        return isNodeKindVisible(source.kind) && isNodeKindVisible(target.kind)
     }
 }
 

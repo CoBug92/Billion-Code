@@ -6,6 +6,8 @@ struct DenseGraphSceneView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragStartCamera: GraphCamera?
     @State private var magnifyStartCamera: GraphCamera?
+    @State private var searchText = ""
+    @State private var suppressNodeSelection = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -44,6 +46,7 @@ private extension DenseGraphSceneView {
     func edgeCanvas(viewport: CGSize) -> some View {
         Canvas(rendersAsynchronously: true) { context, _ in
             for edge in viewModel.graph.edges {
+                guard viewModel.isEdgeVisible(edge) else { continue }
                 guard
                     let source = viewModel.graph.node(id: edge.sourceID),
                     let target = viewModel.graph.node(id: edge.targetID)
@@ -145,8 +148,11 @@ private extension DenseGraphSceneView {
 
     var controls: some View {
         VStack {
-            HStack(alignment: .top) {
-                legend
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 8) {
+                    search
+                    filters
+                }
                 Spacer()
                 Button(action: resetCamera) {
                     Image(systemName: "scope")
@@ -163,26 +169,89 @@ private extension DenseGraphSceneView {
         .padding(.top, 12)
     }
 
-    var legend: some View {
+    var search: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Поиск", text: $searchText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Очистить поиск")
+                }
+            }
+            .padding(.horizontal, 12)
+            .frame(width: 230, height: 44)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+
+            let results = viewModel.searchResults(matching: searchText)
+            if !results.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(results) { node in
+                        Button {
+                            searchText = ""
+                            viewModel.selectNode(id: node.id)
+                            viewModel.focus(on: node.id)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(node.kind.denseGraphColor)
+                                    .frame(width: 8, height: 8)
+                                Text(node.name)
+                                    .font(.subheadline)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                            .padding(.horizontal, 12)
+                            .frame(width: 230, height: 38)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+            }
+        }
+    }
+
+    var filters: some View {
         HStack(spacing: 10) {
-            legendItem(color: GraphEntityKind.person.denseGraphColor, title: "Люди", shape: .circle)
-            legendItem(color: GraphEntityKind.organization.denseGraphColor, title: "Компании", shape: .diamond)
-            legendItem(color: GraphEntityKind.university.denseGraphColor, title: "Вузы", shape: .triangle)
+            filterButton(kind: .person, title: "Люди", shape: .circle)
+            filterButton(kind: .organization, title: "Компании", shape: .diamond)
+            filterButton(kind: .university, title: "Вузы", shape: .triangle)
         }
         .font(.caption2)
         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor.opacity(0.82))
         .padding(.horizontal, 11)
         .frame(minHeight: 44)
         .background(.ultraThinMaterial, in: Capsule())
-        .accessibilityElement(children: .combine)
     }
 
-    func legendItem(color: Color, title: String, shape: DenseLegendShape) -> some View {
-        HStack(spacing: 4) {
-            shape.view(color: color)
-                .frame(width: 8, height: 8)
-            Text(title)
+    func filterButton(kind: GraphEntityKind, title: String, shape: DenseLegendShape) -> some View {
+        let isVisible = viewModel.isNodeKindVisible(kind)
+        return Button {
+            withAnimation(selectionAnimation) {
+                viewModel.setNodeKind(kind, isVisible: !isVisible)
+            }
+        } label: {
+            HStack(spacing: 4) {
+                shape.view(color: kind.denseGraphColor)
+                    .frame(width: 8, height: 8)
+                Text(title)
+            }
+            .opacity(isVisible ? 1 : 0.35)
         }
+        .buttonStyle(.plain)
+        .accessibilityValue(isVisible ? "Показано" : "Скрыто")
     }
 }
 
@@ -207,6 +276,7 @@ private extension DenseGraphSceneView {
     var magnificationGesture: some Gesture {
         MagnifyGesture()
             .onChanged { value in
+                suppressNodeSelection = true
                 if magnifyStartCamera == nil {
                     magnifyStartCamera = viewModel.camera
                 }
@@ -216,6 +286,10 @@ private extension DenseGraphSceneView {
             }
             .onEnded { _ in
                 magnifyStartCamera = nil
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(150))
+                    suppressNodeSelection = false
+                }
             }
     }
 }
@@ -228,6 +302,7 @@ private extension DenseGraphSceneView {
     }
 
     func select(node: GraphNode) {
+        guard !suppressNodeSelection else { return }
         let animation = viewModel.hasSelection ? selectionAnimation : nil
         withAnimation(animation) {
             viewModel.selectNode(id: node.id)
