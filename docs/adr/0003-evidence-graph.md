@@ -4,6 +4,7 @@
 - Статус renderer: `proposed`
 - Дата: 2026-08-31
 - Decision register: P-008—P-011, T-001, T-002
+- Renderer-часть заменена: [ADR-0008](0008-obsidian-evidence-network.md)
 
 ## Контекст
 
@@ -24,6 +25,8 @@
 Пользовательское построение путей не входит в MVP.
 
 ## Предлагаемый renderer
+
+> Историческая запись: описанный ниже world-scene renderer заменён ADR-0007. Evidence model, семантика связей и доступный структурированный список остаются действующими.
 
 Одна world-scene `0...10000`; camera transform хранится отдельно. `Canvas` рисует только edges, позиционированные SwiftUI `Button` — nodes. Одновременно раскрывается не более 40 узлов и 80 рёбер.
 
@@ -49,6 +52,8 @@ Spike проверяет 40/80, pan/zoom/recenter, tap mapping, длинные �
 
 ## Связанные документы
 
+- [ADR-0007: редакционный атлас глав — superseded](0007-chapter-atlas-renderer.md)
+- [ADR-0008: единая evidence network](0008-obsidian-evidence-network.md)
 - [UX-спецификация](../ux/experience.md)
 - [Content model](../domain/content-model.md)
 - [Apple Canvas](https://developer.apple.com/documentation/swiftui/canvas)

@@ -4,7 +4,9 @@ import SwiftUI
 struct BillionCodeApp: App {
     var body: some Scene {
         WindowGroup {
-            GraphContainerView(viewModel: Self.makeContainerViewModel())
+            DenseGraphSceneView(
+                viewModel: DenseGraphViewModel(graph: DenseGraphFixture.performance)
+            )
         }
     }
 

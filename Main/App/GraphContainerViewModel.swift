@@ -4,22 +4,25 @@ import Observation
 @MainActor
 @Observable
 final class GraphContainerViewModel {
-    private(set) var graph: GraphData?
+    private(set) var atlas: GraphAtlas?
     private(set) var didFail = false
 
     private let store: ContentStore
-    private let projector: GraphContentProjector
+    private let projector: GraphAtlasProjector
+    private let configuration: GraphAtlasConfiguration
 
     init(
         store: ContentStore,
-        projector: GraphContentProjector = GraphContentProjector()
+        projector: GraphAtlasProjector = GraphAtlasProjector(),
+        configuration: GraphAtlasConfiguration = .muskDesignSpike
     ) {
         self.store = store
         self.projector = projector
+        self.configuration = configuration
     }
 
     func load() async {
-        guard graph == nil, !didFail else { return }
+        guard atlas == nil, !didFail else { return }
         let state = await store.bootstrap()
         guard let snapshot = state.snapshot else {
             didFail = true
@@ -27,10 +30,10 @@ final class GraphContainerViewModel {
         }
 
         do {
-            graph = try projector.project(
+            atlas = try projector.project(
                 snapshot: snapshot,
                 editionID: snapshot.fallbackEditionID,
-                displayMode: .peopleOnly
+                configuration: configuration
             )
         } catch {
             didFail = true

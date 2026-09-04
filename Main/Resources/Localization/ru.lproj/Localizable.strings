@@ -27,6 +27,11 @@
 "graph.relationship.sources.title" = "Источники";
 "graph.panel.expand" = "Развернуть";
 "graph.panel.collapse" = "Свернуть";
+"graph.chapter.previous" = "Предыдущая глава: %@";
+"graph.chapter.next" = "Следующая глава: %@";
+"graph.chapter.previous.action" = "Предыдущая глава";
+"graph.chapter.next.action" = "Следующая глава";
+"graph.chapter.position" = "Глава %d из %d";
 "graph.node.selected" = "Выбрано";
 "graph.node.hint" = "Выбрать узел и показать его связи";
 "graph.zoom.in" = "Приблизить граф";

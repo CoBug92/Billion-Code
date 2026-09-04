@@ -25,9 +25,9 @@
 
 ### Граф
 
-Проверить SwiftUI `Canvas` для рёбер и `Button` для узлов на сцене 40/80: pan, zoom, выбор, recenter, Dynamic Type, VoiceOver, Voice Control и Reduce Motion.
+Проверить SwiftUI `Canvas` для прямых связей и `Button` для людей, компаний и университетов в единой сцене: pan/zoom, временные пересечения, Dynamic Type, VoiceOver, Voice Control и Reduce Motion.
 
-Фактически реализованы source-backed people-only сцена на 13 людях, детерминированная organic layout, pan/zoom/recenter, `Canvas`-рёбра, портретные `Button`-узлы с fallback, структурированный список связей и панель `collapsed/medium/expanded`. Synthetic 40/80 fixture сохранён для regression checks. Performance и ручной accessibility audit на simulator/device ещё не выполнены; постепенное раскрытие соседей отсутствует.
+Фактически реализован graph-only design/performance spike на 26 людях и их основных публичных местах учёбы и работы: детерминированная свободная раскладка, прямые связи, разные формы и цвета сущностей, pan/zoom и двухшаговая подсветка только при пересечении периодов. Source-backed seed и прежние projectors сохранены, но расширенный fixture ещё не прошёл публикационный source audit. Performance и ручной accessibility audit на реальном устройстве ещё не выполнены.
 
 ### ContentStore
 
@@ -57,7 +57,7 @@
 
 Только после четырёхнедельной проверки выбрать одно направление:
 
-- углубить редакционный атлас;
+- углубить единую evidence network и проверить читаемость плотных кластеров;
 - упростить продукт до историй, если граф не создаёт ценности;
 - расширить каталог, если удержание подтверждено;
 - остановить или переформулировать продукт, если ценность одноразовая.

@@ -9,8 +9,8 @@ struct GraphContainerView: View {
 
     var body: some View {
         Group {
-            if let graph = viewModel.graph {
-                GraphView(viewModel: GraphViewModel(graph: graph))
+            if let atlas = viewModel.atlas {
+                GraphView(viewModel: GraphViewModel(atlas: atlas))
             } else if viewModel.didFail {
                 ContentUnavailableView(
                     L10n.Content.Error.title,

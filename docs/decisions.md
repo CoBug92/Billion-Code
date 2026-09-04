@@ -1,7 +1,7 @@
 # Реестр решений
 
 - Статус документа: `accepted`
-- Последнее обновление: 2026-09-01
+- Последнее обновление: 2026-09-03
 
 Реестр связывает принятые решения с их источником. Он не доказывает, что описанное приложение уже реализовано.
 
@@ -27,18 +27,23 @@
 | P-018 | Тон — нейтрально-аналитический | `accepted` | 2026-08-31 | Planning-сессия | Без героизации и собственных расследований |
 | P-019 | Первый этап реализации изменяет только README и docs | `accepted` | 2026-09-01 | Planning-сессия | Xcode, spike, внешние сервисы и Git не создаются |
 | P-020 | People-only используется как временный presentation experiment без переключателя | `accepted` | 2026-09-01 | План «People-only граф на реальных данных» | Не отменяет P-011 и не меняет schema v1 |
+| P-021 | People-only представление становится полноэкранным атласом глав Tesla → SpaceX → OpenAI → PayPal → Zip2 | `superseded` | 2026-09-01 | План «Кинематографичный редакционный атлас графа»; отклонено пользователем 2026-09-01 | Заменено P-022 и ADR-0008 |
+| P-022 | Главный presentation experiment — единый граф в стиле Obsidian с людьми, компаниями и университетами как узлами | `accepted` | 2026-09-03 | Итерации визуального прототипа и прямой запрос на native iOS | Без центрального героя, стрелок и причинных формулировок |
+| P-023 | Общий вуз или компания связывает людей в подсветке только при пересечении указанных периодов | `accepted` | 2026-09-03 | Уточнение пользователя | Совпадение организации без временного пересечения не визуализирует знакомство |
 
 ## Предлагаемые технические решения
 
 | ID | Решение | Статус | Дата | Источник | Основание для пересмотра |
 |---|---|---|---|---|---|
 | T-001 | `Canvas` рисует только рёбра, узлы — SwiftUI `Button` | `proposed` | 2026-09-01 | Planning-сессия, iOS plan review, локальный graph spike | Реальный accessibility audit |
-| T-002 | Одна world-сцена `10000 × 10000` и максимум 40 видимых узлов / 80 рёбер | `proposed` | 2026-09-01 | Planning-сессия, iOS plan review, локальный graph spike | Performance spike на слабом поддерживаемом устройстве |
+| T-002 | Одна world-сцена `10000 × 10000` и максимум 40 видимых узлов / 80 рёбер | `superseded` | 2026-09-01 | Planning-сессия, iOS plan review, локальный graph spike | Заменено ADR-0007 |
 | T-003 | Actor-isolated `ContentStore`, `current → previous → seed` | `proposed` | 2026-09-01 | Planning-сессия, iOS plan review, локальный storage spike | Полный cache/update fault injection |
 | T-004 | SwiftData не используется для immutable editorial content | `proposed` | 2026-09-01 | Planning-сессия, iOS plan review | Появление пользовательской синхронизируемой модели |
 | T-005 | Xcode 26.2, Swift 6.2.3 и pinned toolchain | `proposed` | 2026-09-01 | Planning-сессия, локальная toolchain/scaffold-проверка | Успешные build/test в среде с рабочим CoreSimulator |
-| T-006 | People-only проекция агрегирует общий доказанный контекст, organic layout детерминирован по ID/version | `proposed` | 2026-09-01 | План и локальный source-backed graph spike | Визуальный, performance и accessibility audit на устройстве |
+| T-006 | People-only проекция агрегирует общий доказанный контекст, organic layout детерминирован по ID/version | `superseded` | 2026-09-01 | План и локальный source-backed graph spike | Агрегация evidence сохранена; organic renderer заменён ADR-0007 |
 | T-007 | Карточка человека и список связей объединены в draggable-панель `collapsed/medium/expanded` | `proposed` | 2026-09-01 | План и локальный SwiftUI spike | Ручная проверка scroll/drag, safe areas и Dynamic Type |
+| T-008 | `GraphAtlas` показывает одну детерминированную главу, морфит общих людей и рисует маршруты только выбранного человека | `superseded` | 2026-09-01 | План «Кинематографичный редакционный атлас графа», ADR-0007, локальная реализация | Заменено T-009 и ADR-0008 |
+| T-009 | Нативный dense graph использует предрассчитанный deterministic force-layout, `Canvas` для прямых рёбер и SwiftUI-кнопки для узлов | `proposed` | 2026-09-03 | Локальный native spike, ADR-0008 | Профилирование на реальном iOS 18-устройстве и accessibility audit |
 
 ## Блокеры публикации
 

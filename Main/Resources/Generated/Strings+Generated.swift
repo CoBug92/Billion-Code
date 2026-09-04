@@ -37,6 +37,28 @@ public enum L10n {
         public static let relationships = L10n.tr("Localizable", "graph.card.show.relationships", fallback: "Показать связи")
       }
     }
+    public enum Chapter {
+      /// Следующая глава: %@
+      public static func next(_ p1: Any) -> String {
+        return L10n.tr("Localizable", "graph.chapter.next", String(describing: p1), fallback: "Следующая глава: %@")
+      }
+      /// Глава %d из %d
+      public static func position(_ p1: Int, _ p2: Int) -> String {
+        return L10n.tr("Localizable", "graph.chapter.position", p1, p2, fallback: "Глава %d из %d")
+      }
+      /// Предыдущая глава: %@
+      public static func previous(_ p1: Any) -> String {
+        return L10n.tr("Localizable", "graph.chapter.previous", String(describing: p1), fallback: "Предыдущая глава: %@")
+      }
+      public enum Next {
+        /// Следующая глава
+        public static let action = L10n.tr("Localizable", "graph.chapter.next.action", fallback: "Следующая глава")
+      }
+      public enum Previous {
+        /// Предыдущая глава
+        public static let action = L10n.tr("Localizable", "graph.chapter.previous.action", fallback: "Предыдущая глава")
+      }
+    }
     public enum Entity {
       /// Сделка
       public static let deal = L10n.tr("Localizable", "graph.entity.deal", fallback: "Сделка")

@@ -15,4 +15,6 @@ enum AppSymbols {
     static let chevron = "chevron.right"
     static let contentUnavailable = "doc.questionmark"
     static let information = "info.circle"
+    static let next = "chevron.right"
+    static let previous = "chevron.left"
 }

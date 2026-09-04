@@ -1,7 +1,7 @@
 # Предлагаемая iOS-архитектура
 
 - Статус: `proposed`
-- Фактическое состояние: scaffold загружает source-backed bundled seed через `ContentStore`, строит people-only projection и organic layout; production MVP отсутствует
+- Фактическое состояние: scaffold запускает локальный dense-graph fixture с 26 людьми, компаниями и университетами; source-backed `ContentStore` и прежний `GraphAtlas` сохранены, но не являются текущим root screen; production MVP отсутствует
 - Платформа: iPhone, portrait-only, iOS 18+
 - UI: SwiftUI
 - Последнее обновление: 2026-09-01
@@ -79,32 +79,34 @@ SwiftUI view отображает state и отправляет намерени
 - владеет состоянием flow;
 - запрашивает snapshot через consumer-owned protocol;
 - преобразует domain в presentation data;
-- управляет навигацией и camera intent;
+- управляет camera transform, selection и вычисленным двухшаговым highlight;
 - отправляет типизированные analytics events;
 - обрабатывает cancellation жизненного цикла.
 
 ### Навигация
 
-Корневой Graph flow хранит camera/selection. Profile и Settings открываются через navigation stack или sheet без уничтожения GraphViewModel. Конкретный router вводится только если стандартная локальная навигация перестаёт быть ясной.
+Корневой Graph flow хранит camera/selection. Profile и Settings открываются через navigation stack или sheet без уничтожения graph view model. Конкретный router вводится только если стандартная локальная навигация перестаёт быть ясной.
 
 ## Граф
 
 ### Рендер
 
-- `Canvas` рисует подтверждённые и оспариваемые рёбра.
-- Узлы — позиционированные SwiftUI `Button` поверх Canvas.
-- World coordinates приходят из content snapshot.
-- Camera transform переводит world в viewport; модельные координаты не мутируют.
+- `DenseGraphData` хранит presentation-узлы людей, компаний и университетов и ненаправленные подписанные рёбра.
+- `DenseGraphLayout` детерминированно выполняет force simulation вне runtime-взаимодействия, затем нормализует свободную раскладку с сохранением пропорций.
+- `Canvas` рисует прямые связи и малые подписи активного окружения.
+- Узлы — позиционированные SwiftUI `Button` поверх Canvas; цвет и форма независимо кодируют тип сущности.
+- `GraphCamera` хранит pan/zoom transform; в viewport создаются только видимые node views.
+- Двухшаговая подсветка через компанию или университет требует пересечения распарсенных годовых интервалов. Неизвестный интервал не создаёт inferred highlight.
 - Relationship detail открывается из доступного списка связей выбранного узла, а не tap по линии.
 
 ### Доступность
 
-Каждая node button имеет label, kind, selection state и hint. Отдельный структурированный список использует те же domain IDs и actions. Программный recenter синхронизирует accessibility focus после завершения/отмены анимации.
+Каждая node button имеет label, kind и selection state. Отдельный структурированный список использует те же domain IDs и actions. Reset camera доступен отдельным VoiceOver action.
 
 ### Лимиты
 
-- world scene: `10000 × 10000`;
-- одновременно не больше 40 nodes / 80 edges;
+- текущий fixture: 26 людей и их основные публичные места учёбы и работы;
+- world-сцена `10000 × 10000`, масштаб камеры `0.035...0.24`;
 - touch target ≥ 44×44 pt;
 - dataset ≤ 5 MiB.
 
@@ -174,7 +176,7 @@ Features зависят от `AnalyticsClient`, принимающего зак�
 - Firebase и filesystem не импортируются во Flows.
 - Невалидный dataset никогда не становится snapshot.
 - Сеть не блокирует первый render.
-- Camera не изменяет content layout.
+- Selection и camera transform не изменяют рассчитанный layout.
 - UI-связь и доступный список используют один relationship ID.
 - Feature не создаёт протокол без заменяемой инфраструктурной границы.
 
@@ -182,9 +184,9 @@ Features зависят от `AnalyticsClient`, принимающего зак�
 
 ### Graph spike
 
-Проверить 40/80, pan/zoom/recenter, длинные имена, Dynamic Type, VoiceOver, Voice Control, Reduce Motion, hit mapping и frame performance на самом слабом доступном iOS 18-устройстве.
+Проверить pan/zoom, reset camera, длинные имена, временные пересечения, Dynamic Type, VoiceOver, Voice Control, Reduce Motion, hit mapping и frame performance на самом слабом доступном iOS 18-устройстве.
 
-Текущий результат: приложение использует bundled schema-v1 design dataset с 13 людьми и пятью скрытыми организациями. Реализованы people-only projection, объединение нескольких контекстов пары, детерминированная organic layout, portrait fallback, доступные `Button`-узлы и draggable-панель с тремя detents. Синтетический fixture сохранён только для previews/регрессионных тестов. Реальный frame performance, Dynamic Type extremes и ручные assistive-technology сценарии не измерены, поэтому T-001/T-002/T-006/T-007 остаются `proposed`.
+Текущий результат: root screen использует локальный design/performance fixture и единую Obsidian-подобную сцену. Реализованы разные формы и цвета людей, компаний и университетов, прямые ненаправленные связи, малые подписи period/detail, pan/zoom, viewport culling и детерминированная свободная раскладка. Выбор человека раскрывает организации и только тех людей, чьи периоды в общей организации пересекаются. Source-backed seed и прежние projectors сохранены, но расширенный fixture ещё не прошёл публикационный source audit. Реальный frame performance и ручные assistive-technology сценарии не измерены, поэтому T-001/T-009 остаются `proposed`; T-008 заменён ADR-0008.
 
 ### ContentStore spike
 
@@ -199,5 +201,7 @@ Features зависят от `AnalyticsClient`, принимающего зак�
 - [ADR-0001: native iOS](../adr/0001-native-ios-first.md)
 - [ADR-0002: offline feed](../adr/0002-offline-content-feed.md)
 - [ADR-0003: evidence graph](../adr/0003-evidence-graph.md)
+- [ADR-0007: редакционный атлас глав — superseded](../adr/0007-chapter-atlas-renderer.md)
+- [ADR-0008: единая evidence network в стиле Obsidian](../adr/0008-obsidian-evidence-network.md)
 - [Доставка контента](content-delivery.md)
 - [Инженерные правила](../engineering/project-guidelines.md)

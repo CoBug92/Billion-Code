@@ -2,6 +2,8 @@ import SwiftUI
 
 struct GraphBottomPanel: View {
     let node: GraphNode
+    let chapterTitle: String
+    let chapterAccent: Color
     let relationships: [GraphRelationship]
     let graph: GraphData
     let availableHeight: CGFloat
@@ -12,9 +14,48 @@ struct GraphBottomPanel: View {
 
     @Binding var detent: GraphPanelDetent
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var dragTranslation = CGFloat.zero
 
     var body: some View {
+        Group {
+            if detent == .collapsed {
+                panelContent
+                    .frame(height: .collapsedCardHeight, alignment: .top)
+                    .background(
+                        .ultraThinMaterial,
+                        in: RoundedRectangle(
+                            cornerRadius: .cornerRadius,
+                            style: .continuous
+                        )
+                    )
+                    .padding(.horizontal, Margin.x6)
+                    .padding(.bottom, bottomSafeArea + Margin.x4)
+            } else {
+                panelContent
+                    .frame(height: currentHeight, alignment: .top)
+                    .background(
+                        Asset.Colors.surfacePrimary.swiftUIColor,
+                        in: UnevenRoundedRectangle(
+                            topLeadingRadius: .cornerRadius,
+                            bottomLeadingRadius: .zero,
+                            bottomTrailingRadius: .zero,
+                            topTrailingRadius: .cornerRadius,
+                            style: .continuous
+                        )
+                    )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: currentHeight, alignment: .bottom)
+        .shadow(color: Color.black.opacity(.shadowOpacity), radius: .shadowRadius, y: -.shadowOffset)
+        .accessibilityAction(named: L10n.Graph.Panel.expand) { move(up: true) }
+        .accessibilityAction(named: L10n.Graph.Panel.collapse) { move(up: false) }
+    }
+}
+
+private extension GraphBottomPanel {
+    var panelContent: some View {
         VStack(spacing: .zero) {
             dragHeader
                 .padding(.top, detent == .expanded ? topSafeArea : .zero)
@@ -23,25 +64,8 @@ struct GraphBottomPanel: View {
                     .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: currentHeight, alignment: .top)
-        .background(
-            Asset.Colors.surfacePrimary.swiftUIColor,
-            in: UnevenRoundedRectangle(
-                topLeadingRadius: .cornerRadius,
-                bottomLeadingRadius: .zero,
-                bottomTrailingRadius: .zero,
-                topTrailingRadius: .cornerRadius,
-                style: .continuous
-            )
-        )
-        .shadow(color: Color.black.opacity(.shadowOpacity), radius: .shadowRadius, y: -.shadowOffset)
-        .accessibilityAction(named: L10n.Graph.Panel.expand) { move(up: true) }
-        .accessibilityAction(named: L10n.Graph.Panel.collapse) { move(up: false) }
     }
-}
 
-private extension GraphBottomPanel {
     var currentHeight: CGFloat {
         let resting = detent.height(availableHeight: availableHeight, bottomSafeArea: bottomSafeArea)
         return min(max(resting - dragTranslation, .minimumPanelHeight), availableHeight + bottomSafeArea)
@@ -54,15 +78,25 @@ private extension GraphBottomPanel {
                 .frame(width: .handleWidth, height: .handleHeight)
                 .padding(.top, Margin.x4)
             HStack(spacing: Margin.x6) {
-                PersonAvatarView(node: node, diameter: .profileDiameter)
+                PersonAvatarView(
+                    node: node,
+                    diameter: .profileDiameter,
+                    accentColor: chapterAccent
+                )
                 VStack(alignment: .leading, spacing: Margin.x2) {
+                    Text(chapterTitle.uppercased())
+                        .font(.caption2.bold())
+                        .tracking(1.2)
+                        .foregroundStyle(chapterAccent)
                     Text(node.name)
                         .font(.headline)
                         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                    Text(node.summary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(detent == .collapsed ? 2 : 3)
+                    if detent != .collapsed || !dynamicTypeSize.isAccessibilitySize {
+                        Text(node.summary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(detent == .collapsed ? 2 : 3)
+                    }
                 }
                 Spacer(minLength: Margin.x3)
                 Text(L10n.Graph.Card.relationships(relationships.count))
@@ -77,6 +111,7 @@ private extension GraphBottomPanel {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(node.name)
         .accessibilityValue(L10n.Graph.Card.relationships(relationships.count))
+        .accessibilityHint(node.summary)
     }
 
     var relationshipList: some View {
@@ -185,6 +220,7 @@ private extension GraphBottomPanel {
 }
 
 private extension CGFloat {
+    static let collapsedCardHeight = 120.0
     static let cornerRadius = 28.0
     static let handleHeight = 5.0
     static let handleWidth = 40.0
@@ -201,4 +237,26 @@ private extension CGFloat {
 private extension Double {
     static let handleOpacity = 0.35
     static let shadowOpacity = 0.14
+}
+
+// MARK: - Preview
+
+#Preview("Collapsed", traits: .sizeThatFitsLayout) {
+    @Previewable @State var detent = GraphPanelDetent.collapsed
+    let atlas = GraphAtlasFixture.editorial
+    GraphBottomPanel(
+        node: atlas.nodes[0],
+        chapterTitle: atlas.chapters[0].title,
+        chapterAccent: atlas.chapters[0].accentColor,
+        relationships: atlas.relationships,
+        graph: atlas.graphData,
+        availableHeight: 844,
+        topSafeArea: 59,
+        bottomSafeArea: 34,
+        onSelectNode: { _ in },
+        onOpenRelationship: { _ in },
+        detent: $detent
+    )
+    .frame(height: 180)
+    .preferredColorScheme(.dark)
 }

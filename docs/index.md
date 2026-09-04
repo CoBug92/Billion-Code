@@ -34,6 +34,8 @@
 - [ADR-0004: content pipeline](adr/0004-git-authored-content-pipeline.md)
 - [ADR-0005: Firebase Analytics](adr/0005-always-on-firebase-analytics.md)
 - [ADR-0006: HTTPS manifest trust](adr/0006-https-manifest-trust.md)
+- [ADR-0007: редакционный атлас глав](adr/0007-chapter-atlas-renderer.md)
+- [ADR-0008: единая evidence network в стиле Obsidian](adr/0008-obsidian-evidence-network.md)
 - [Глоссарий](glossary.md)
 
 ## Продуктовые документы

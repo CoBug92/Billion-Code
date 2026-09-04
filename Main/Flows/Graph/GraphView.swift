@@ -15,11 +15,18 @@ struct GraphView: View {
         NavigationStack {
             GeometryReader { geometry in
                 ZStack(alignment: .bottom) {
-                    graphContent(bottomInset: panelDetent == .expanded ? .zero : .collapsedPanelInset)
+                    GraphSceneView(
+                        viewModel: viewModel,
+                        panelDetent: panelDetent
+                    )
+                    .ignoresSafeArea()
+                    header(topSafeArea: geometry.safeAreaInsets.top)
                     GraphBottomPanel(
                         node: viewModel.selectedNode,
+                        chapterTitle: viewModel.activeChapter.title,
+                        chapterAccent: viewModel.activeChapter.accentColor,
                         relationships: viewModel.selectedRelationships,
-                        graph: viewModel.graph,
+                        graph: viewModel.atlas.graphData,
                         availableHeight: geometry.size.height,
                         topSafeArea: geometry.safeAreaInsets.top,
                         bottomSafeArea: geometry.safeAreaInsets.bottom,
@@ -29,7 +36,6 @@ struct GraphView: View {
                     )
                     .ignoresSafeArea(edges: panelDetent == .expanded ? .all : .bottom)
                 }
-                .background(Asset.Colors.backgroundPrimary.swiftUIColor)
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showsPeople) {
@@ -46,9 +52,9 @@ struct GraphView: View {
             .sheet(item: $presentedRelationship) { relationship in
                 RelationshipDetailView(
                     relationship: relationship,
-                    source: viewModel.graph.node(id: relationship.sourceID),
-                    target: viewModel.graph.node(id: relationship.targetID),
-                    sources: viewModel.graph.sources.filter { relationship.sourceIDs.contains($0.id) }
+                    source: viewModel.atlas.node(id: relationship.sourceID),
+                    target: viewModel.atlas.node(id: relationship.targetID),
+                    sources: viewModel.atlas.sources.filter { relationship.sourceIDs.contains($0.id) }
                 )
                 .presentationDetents([.medium, .large])
             }
@@ -56,53 +62,76 @@ struct GraphView: View {
     }
 }
 
+// MARK: - Layout
+
 private extension GraphView {
-    func graphContent(bottomInset: CGFloat) -> some View {
-        VStack(spacing: .zero) {
-            header
-            GraphSceneView(viewModel: viewModel)
-                .frame(maxHeight: .infinity)
-        }
-        .padding(.bottom, bottomInset)
-    }
-
-    var header: some View {
-        HStack(alignment: .center, spacing: Margin.x6) {
-            VStack(alignment: .leading, spacing: Margin.x2) {
-                Text(L10n.Graph.title)
-                    .font(.title2.bold())
-                    .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                Text(L10n.Graph.Featured.summary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    func header(topSafeArea: CGFloat) -> some View {
+        VStack {
+            HStack(alignment: .center, spacing: Margin.x6) {
+                VStack(alignment: .leading, spacing: Margin.x2) {
+                    Text(L10n.Graph.title)
+                        .font(.headline.bold())
+                        .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                    Text(
+                        L10n.Graph.Chapter.position(
+                            viewModel.activeChapterIndex + 1,
+                            viewModel.atlas.chapters.count
+                        )
+                    )
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(viewModel.activeChapter.accentColor)
+                }
+                Spacer(minLength: Margin.x4)
+                Button { showsPeople = true } label: {
+                    Image(systemName: AppSymbols.people)
+                        .frame(
+                            width: .minimumTouchTarget,
+                            height: .minimumTouchTarget
+                        )
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.Graph.People.open)
             }
-            Spacer(minLength: Margin.x4)
-            Button { showsPeople = true } label: {
-                Image(systemName: AppSymbols.people)
-                    .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
-            }
-            .accessibilityLabel(L10n.Graph.People.open)
-        }
-        .padding(.horizontal, Margin.x8)
-        .padding(.vertical, Margin.x5)
-    }
-
-    func selectNode(_ id: GraphNode.ID) {
-        guard !reduceMotion else {
-            viewModel.selectNode(id: id)
-            return
-        }
-        withAnimation(.snappy) {
-            viewModel.selectNode(id: id)
+            .padding(.top, topSafeArea + Margin.x3)
+            .padding(.horizontal, Margin.x8)
+            Spacer()
         }
     }
 }
 
+// MARK: - Private methods
+
+private extension GraphView {
+    func selectNode(_ id: GraphNode.ID) {
+        if reduceMotion {
+            viewModel.selectNode(id: id)
+        } else {
+            withAnimation(.smooth(duration: .chapterTransitionDuration)) {
+                viewModel.selectNode(id: id)
+            }
+        }
+    }
+}
+
+// MARK: - Constants
+
 private extension CGFloat {
-    static let collapsedPanelInset = 112.0
     static let minimumTouchTarget = 44.0
 }
 
-#Preview {
-    GraphView(viewModel: GraphViewModel(graph: GraphFixture.spike))
+private extension Double {
+    static let chapterTransitionDuration = 0.55
+}
+
+// MARK: - Preview
+
+#Preview("Dark Atlas") {
+    GraphView(viewModel: GraphViewModel(atlas: GraphAtlasFixture.editorial))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Light Atlas") {
+    GraphView(viewModel: GraphViewModel(atlas: GraphAtlasFixture.editorial))
+        .preferredColorScheme(.light)
 }
