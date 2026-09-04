@@ -9,22 +9,6 @@ extension DenseGraphDossierPanel {
 #endif
     }
 
-    var wealthCardVariant: WealthCardVariant {
-#if DEBUG
-        debugVariant(argument: "-wealthCardVariant") ?? .gradient
-#else
-        .gradient
-#endif
-    }
-
-    var personUniversityCloudVariant: PersonUniversityCloudVariant {
-#if DEBUG
-        debugVariant(argument: "-personUniversityCloudVariant") ?? .cloud
-#else
-        .cloud
-#endif
-    }
-
     var personMetadata: String? {
         guard let details = dossier.personDetails else { return nil }
         let birthDate = details.birthDate

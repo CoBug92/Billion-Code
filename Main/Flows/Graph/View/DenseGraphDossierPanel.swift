@@ -115,14 +115,11 @@ private extension DenseGraphDossierPanel {
         VStack(alignment: .leading, spacing: 9) {
             compactPrimaryFact
             if node.kind == .person {
-                compactLinks
-                if !dossier.education.isEmpty {
-                    CompactPersonUniversityCloud(
-                        universities: dossier.education,
-                        variant: personUniversityCloudVariant,
-                        onNavigate: onNavigate
-                    )
-                }
+                CompactPersonCloudGroups(
+                    companies: dossier.currentLinks.isEmpty ? dossier.sortedLinks : dossier.currentLinks,
+                    universities: dossier.education,
+                    onNavigate: onNavigate
+                )
             } else if node.kind != .organization && node.kind != .university {
                 compactLinks
             }
@@ -142,9 +139,7 @@ private extension DenseGraphDossierPanel {
             if let wealth = dossier.wealth {
                 CompactWealthCard(
                     wealth: wealth,
-                    formattedAmount: formatUSD(wealth.amountUSD),
-                    variant: wealthCardVariant,
-                    onOpenSource: { presentedSource = $0 }
+                    formattedAmount: formatUSD(wealth.amountUSD)
                 )
             }
         case .organization:

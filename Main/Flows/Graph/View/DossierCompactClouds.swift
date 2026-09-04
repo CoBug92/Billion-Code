@@ -3,32 +3,19 @@ import SwiftUI
 struct CompactWealthCard: View {
     let wealth: DossierWealth
     let formattedAmount: String
-    let variant: WealthCardVariant
-    let onOpenSource: (DossierSource) -> Void
 
-    @ViewBuilder
     var body: some View {
-        switch variant {
-        case .gradient:
-            gradientCard
-        case .ticker:
-            tickerCard
-        case .orb:
-            orbCard
-        }
-    }
-
-    private var gradientCard: some View {
-        HStack(spacing: 12) {
-            amountBlock
-            Spacer()
-            sourceButton(icon: "chart.line.uptrend.xyaxis")
+        VStack(alignment: .leading, spacing: 2) {
+            Text("СОСТОЯНИЕ").font(.caption2.bold()).tracking(1).foregroundStyle(blue)
+            Text(formattedAmount).font(.system(.title2, design: .rounded, weight: .bold))
+            Text("на \(wealth.asOf)").font(.caption2).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             LinearGradient(
-                colors: [Asset.Colors.chapterBlue.swiftUIColor.opacity(0.2), .cyan.opacity(0.08)],
+                colors: [blue.opacity(0.2), .cyan.opacity(0.08)],
                 startPoint: .leading,
                 endPoint: .trailing
             ),
@@ -36,147 +23,64 @@ struct CompactWealthCard: View {
         )
     }
 
-    private var tickerCard: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("КАПИТАЛ").font(.caption2.bold()).tracking(1)
-                Text(formattedAmount).font(.system(.title2, design: .rounded, weight: .black))
-            }
-            .padding(.horizontal, 15)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(blue, in: UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 22))
-            .foregroundStyle(.white)
-            VStack(spacing: 4) {
-                sourceButton(icon: "arrow.up.right")
-                Text(wealth.asOf).font(.system(size: 9, weight: .medium)).foregroundStyle(.secondary)
-            }
-            .frame(width: 88)
-            .frame(minHeight: 72)
-            .background(blue.opacity(0.11), in: UnevenRoundedRectangle(bottomTrailingRadius: 22, topTrailingRadius: 22))
-        }
-    }
-
-    private var orbCard: some View {
-        HStack(spacing: 13) {
-            Image(systemName: "dollarsign")
-                .font(.title2.bold())
-                .foregroundStyle(.white)
-                .frame(width: 54, height: 54)
-                .background(blue.gradient, in: Circle())
-            amountBlock
-            Spacer(minLength: 4)
-            sourceButton(icon: "info")
-        }
-        .padding(10)
-        .background(.thinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(blue.opacity(0.18)))
-    }
-
-    private var amountBlock: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("СОСТОЯНИЕ").font(.caption2.bold()).tracking(1).foregroundStyle(blue)
-            Text(formattedAmount).font(.system(.title2, design: .rounded, weight: .bold))
-            Text("на \(wealth.asOf)").font(.caption2).foregroundStyle(.secondary)
-        }
-    }
-
-    private func sourceButton(icon: String) -> some View {
-        Button { onOpenSource(wealth.source) } label: {
-            Image(systemName: icon)
-                .font(.headline)
-                .foregroundStyle(blue)
-                .frame(width: 42, height: 42)
-                .background(.white.opacity(0.6), in: Circle())
-        }
-        .buttonStyle(.plain)
-    }
-
     private var blue: Color { Asset.Colors.chapterBlue.swiftUIColor }
 }
 
-enum WealthCardVariant: Int, CaseIterable {
-    case gradient = 1
-    case ticker
-    case orb
-}
-
-struct CompactPersonUniversityCloud: View {
+struct CompactPersonCloudGroups: View {
+    let companies: [DossierEntityLink]
     let universities: [DossierEntityLink]
-    let variant: PersonUniversityCloudVariant
     let onNavigate: (GraphNode.ID) -> Void
 
-    @ViewBuilder
     var body: some View {
-        switch variant {
-        case .cloud:
-            cloud
-        case .campus:
-            campus
-        case .stack:
-            stack
-        }
-    }
-
-    private var cloud: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            title
-            FlowLayout(spacing: 7) { universityButtons }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            purple.opacity(0.17),
-            in: UnevenRoundedRectangle(
-                topLeadingRadius: 27,
-                bottomLeadingRadius: 15,
-                bottomTrailingRadius: 28,
-                topTrailingRadius: 16
-            )
-        )
-    }
-
-    private var campus: some View {
-        HStack(spacing: 11) {
-            Image(systemName: "building.columns.fill")
-                .font(.title3)
-                .foregroundStyle(.white)
-                .frame(width: 48, height: 48)
-                .background(purple.gradient, in: Circle())
-            VStack(alignment: .leading, spacing: 6) {
-                title
-                FlowLayout(spacing: 6) { universityButtons }
+        VStack(alignment: .leading, spacing: 13) {
+            cloudGroup(title: "Компании", tint: amber) {
+                ForEach(companies) { company in
+                    companyButton(company)
+                }
             }
-        }
-        .padding(11)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(purple.opacity(0.13), in: Capsule())
-    }
-
-    private var stack: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            title.padding(.leading, 4)
-            FlowLayout(spacing: 6) {
-                ForEach(Array(universities.enumerated()), id: \.element.id) { index, university in
+            cloudGroup(title: "Вузы", tint: purple) {
+                ForEach(universities) { university in
                     universityButton(university)
-                        .background(purple.opacity(index.isMultiple(of: 2) ? 0.24 : 0.14), in: Capsule())
                 }
             }
         }
     }
 
-    private var title: some View {
-        Label("ОБРАЗОВАНИЕ", systemImage: "graduationcap.fill")
-            .font(.caption2.bold())
-            .tracking(0.8)
-            .foregroundStyle(purple)
+    private func cloudGroup<Content: View>(
+        title: String,
+        tint: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 6) {
+                Circle().fill(tint).frame(width: 7, height: 7)
+                Text(title.uppercased()).font(.caption2.bold()).tracking(0.9)
+            }
+            .foregroundStyle(tint)
+            .padding(.leading, 3)
+            FlowLayout(spacing: 7) { content() }
+        }
     }
 
-    @ViewBuilder
-    private var universityButtons: some View {
-        ForEach(universities) { university in
-            universityButton(university)
-                .background(.white.opacity(0.58), in: Capsule())
+    private func companyButton(_ company: DossierEntityLink) -> some View {
+        Button {
+            if let entityID = company.entityID { onNavigate(entityID) }
+        } label: {
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(company.isCurrent ? Color.green : Color.secondary.opacity(0.55))
+                    .frame(width: 6, height: 6)
+                Text(company.name).lineLimit(1)
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+            .padding(.horizontal, 10)
+            .frame(height: 34)
+            .background(amber.opacity(0.11), in: Capsule())
+            .overlay(Capsule().stroke(amber.opacity(0.18)))
         }
+        .buttonStyle(.plain)
+        .disabled(company.entityID == nil)
     }
 
     private func universityButton(_ university: DossierEntityLink) -> some View {
@@ -187,16 +91,21 @@ struct CompactPersonUniversityCloud: View {
         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
         .buttonStyle(.plain)
         .padding(.horizontal, 10)
-        .frame(height: 31)
+        .frame(height: 34)
+        .background(
+            LinearGradient(
+                colors: [purple.opacity(0.2), purple.opacity(0.12)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: Capsule()
+        )
+        .overlay(Capsule().stroke(purple.opacity(0.16)))
+        .disabled(university.entityID == nil)
     }
 
     private var purple: Color { Asset.Colors.chapterViolet.swiftUIColor }
-}
-
-enum PersonUniversityCloudVariant: Int, CaseIterable {
-    case cloud = 1
-    case campus
-    case stack
+    private var amber: Color { Asset.Colors.chapterAmber.swiftUIColor }
 }
 
 struct CompactOrganizationCloud: View {
