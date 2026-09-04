@@ -22,6 +22,8 @@ struct DenseGraphFixtureTests {
             #expect(edges.contains { $0.kind == .business })
             #expect(edges.contains { $0.kind == .education })
             #expect(graph.dossier(id: person.id)?.wealth != nil)
+            #expect(graph.dossier(id: person.id)?.personDetails != nil)
+            #expect(graph.dossier(id: person.id)?.education.isEmpty == false)
         }
         #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count == 24)
     }

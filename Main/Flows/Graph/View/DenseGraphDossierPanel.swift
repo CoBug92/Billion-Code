@@ -49,12 +49,13 @@ private extension DenseGraphDossierPanel {
             bottomSafeArea: bottomSafeArea
         )
         let preferredContentHeight: CGFloat = switch node.kind {
-        case .person: 320
+        case .person: 420
         case .organization: 350
         case .university: 390
         default: 300
         }
-        return min(max(baseHeight, preferredContentHeight + bottomSafeArea), availableHeight * 0.52)
+        let maximumFraction = node.kind == .person ? 0.6 : 0.52
+        return min(max(baseHeight, preferredContentHeight + bottomSafeArea), availableHeight * maximumFraction)
     }
     var restingHeight: CGFloat {
         detent.height(
@@ -91,6 +92,7 @@ private extension DenseGraphDossierPanel {
         DossierPanelHeader(
             node: node,
             eyebrowText: eyebrowText,
+            personMetadata: personMetadata,
             detent: detent,
             canNavigateBack: canNavigateBack,
             onBack: onBack,
@@ -114,17 +116,12 @@ private extension DenseGraphDossierPanel {
             compactPrimaryFact
             if node.kind == .person {
                 compactLinks
-                if let first = dossier.timeline.first {
-                    Label(
-                        "\(first.year) · \(first.title): \(first.description)",
-                        systemImage: "sparkles"
+                if !dossier.education.isEmpty {
+                    CompactPersonUniversityCloud(
+                        universities: dossier.education,
+                        variant: personUniversityCloudVariant,
+                        onNavigate: onNavigate
                     )
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .padding(.horizontal, 11)
-                        .frame(minHeight: 32)
-                        .background(.secondary.opacity(0.07), in: Capsule())
                 }
             } else if node.kind != .organization && node.kind != .university {
                 compactLinks
@@ -146,6 +143,7 @@ private extension DenseGraphDossierPanel {
                 CompactWealthCard(
                     wealth: wealth,
                     formattedAmount: formatUSD(wealth.amountUSD),
+                    variant: wealthCardVariant,
                     onOpenSource: { presentedSource = $0 }
                 )
             }
@@ -318,19 +316,6 @@ private extension DenseGraphDossierPanel {
         case .university: "Люди и программы"
         default: "Связанные ноды"
         }
-    }
-
-    var universityCloudVariant: UniversityCloudVariant {
-#if DEBUG
-        let arguments = ProcessInfo.processInfo.arguments
-        if let index = arguments.firstIndex(of: "-universityCloudVariant"),
-           arguments.indices.contains(index + 1),
-           let rawValue = Int(arguments[index + 1]),
-           let variant = UniversityCloudVariant(rawValue: rawValue) {
-            return variant
-        }
-#endif
-        return .soft
     }
 
     func color(for link: DossierEntityLink) -> Color {

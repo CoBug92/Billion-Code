@@ -9,6 +9,8 @@ struct EntityDossier: Equatable, Sendable {
     let links: [DossierEntityLink]
     let timeline: [DossierTimelineEvent]
     let wealth: DossierWealth?
+    let personDetails: DossierPersonDetails?
+    let education: [DossierEntityLink]
 
     var currentLinks: [DossierEntityLink] {
         links.filter(\.isCurrent)
@@ -19,6 +21,23 @@ struct EntityDossier: Equatable, Sendable {
             if $0.isCurrent != $1.isCurrent { return $0.isCurrent }
             return $0.startYear > $1.startYear
         }
+    }
+}
+
+struct DossierPersonDetails: Equatable, Sendable {
+    let birthDate: DossierBirthDate
+    let ageReferenceDate: DossierBirthDate?
+}
+
+struct DossierBirthDate: Equatable, Sendable {
+    let year: Int
+    let month: Int?
+    let day: Int?
+
+    init(year: Int, month: Int? = nil, day: Int? = nil) {
+        self.year = year
+        self.month = month
+        self.day = day
     }
 }
 

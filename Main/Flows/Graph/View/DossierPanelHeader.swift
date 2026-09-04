@@ -3,6 +3,7 @@ import SwiftUI
 struct DossierPanelHeader: View {
     let node: GraphNode
     let eyebrowText: String?
+    let personMetadata: String?
     let detent: DenseDossierDetent
     let canNavigateBack: Bool
     let onBack: () -> Void
@@ -29,6 +30,12 @@ struct DossierPanelHeader: View {
                         .font(node.kind == .person ? .title.bold() : .title2.bold())
                         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
                         .lineLimit(2)
+                    if let personMetadata {
+                        Text(personMetadata)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
                 Spacer(minLength: 8)
                 toggleButton

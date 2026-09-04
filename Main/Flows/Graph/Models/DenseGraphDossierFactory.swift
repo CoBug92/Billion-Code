@@ -87,7 +87,9 @@ private extension DenseGraphDossierFactory {
             facts: facts,
             links: work,
             timeline: timeline(from: links),
-            wealth: wealthByPersonID[node.id]
+            wealth: wealthByPersonID[node.id],
+            personDetails: personDetailsByID[node.id],
+            education: education
         )
     }
 
@@ -119,7 +121,9 @@ private extension DenseGraphDossierFactory {
             facts: facts,
             links: links,
             timeline: timeline(from: links),
-            wealth: nil
+            wealth: nil,
+            personDetails: nil,
+            education: []
         )
     }
 
@@ -138,7 +142,9 @@ private extension DenseGraphDossierFactory {
             ],
             links: links,
             timeline: timeline(from: links),
-            wealth: nil
+            wealth: nil,
+            personDetails: nil,
+            education: []
         )
     }
 
@@ -151,7 +157,9 @@ private extension DenseGraphDossierFactory {
             facts: [],
             links: links,
             timeline: timeline(from: links),
-            wealth: nil
+            wealth: nil,
+            personDetails: nil,
+            education: []
         )
     }
 
@@ -215,6 +223,32 @@ private extension DenseGraphDossierFactory {
             )
         }
         return result
+    }()
+
+    static let personDetailsByID: [GraphNode.ID: DossierPersonDetails] = {
+        func details(_ year: Int, _ month: Int? = nil, _ day: Int? = nil) -> DossierPersonDetails {
+            DossierPersonDetails(birthDate: .init(year: year, month: month, day: day), ageReferenceDate: nil)
+        }
+        var values: [GraphNode.ID: DossierPersonDetails] = [
+            "person:elon-musk": details(1971, 6, 28), "person:kimbal-musk": details(1972, 9, 20),
+            "person:jb-straubel": details(1975, 12, 20), "person:martin-eberhard": details(1960, 5, 15),
+            "person:marc-tarpenning": details(1964, 6, 1), "person:ian-wright": details(1956),
+            "person:gwynne-shotwell": details(1963, 11, 23), "person:sam-altman": details(1985, 4, 22),
+            "person:greg-brockman": details(1987, 11, 29), "person:ilya-sutskever": details(1986, 12, 8),
+            "person:peter-thiel": details(1967, 10, 11), "person:max-levchin": details(1975, 7, 11),
+            "person:reid-hoffman": details(1967, 8, 5), "person:larry-page": details(1973, 3, 26),
+            "person:sergey-brin": details(1973, 8, 21), "person:eric-schmidt": details(1955, 4, 27),
+            "person:sundar-pichai": details(1972, 6, 10), "person:mark-zuckerberg": details(1984, 5, 14),
+            "person:dustin-moskovitz": details(1984, 5, 22), "person:sheryl-sandberg": details(1969, 8, 28),
+            "person:bill-gates": details(1955, 10, 28), "person:steve-ballmer": details(1956, 3, 24),
+            "person:satya-nadella": details(1967, 8, 19), "person:jeff-bezos": details(1964, 1, 12),
+            "person:jensen-huang": details(1963, 2, 17)
+        ]
+        values["person:susan-wojcicki"] = DossierPersonDetails(
+            birthDate: .init(year: 1968, month: 7, day: 5),
+            ageReferenceDate: .init(year: 2024, month: 8, day: 9)
+        )
+        return values
     }()
 
     static let organizationActivity: [String: String] = [
