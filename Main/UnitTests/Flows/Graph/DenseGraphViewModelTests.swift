@@ -40,4 +40,35 @@ struct DenseGraphViewModelTests {
         #expect(viewModel.highlightedNodeIDs.isEmpty)
         #expect(viewModel.highlightedEdgeIDs.isEmpty)
     }
+
+    @Test("Dossier navigation records history and restores selection")
+    func dossierNavigationBack() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        viewModel.selectNode(id: "person:elon-musk")
+        let originalCamera = viewModel.camera
+
+        viewModel.navigate(to: "organization:tesla")
+
+        #expect(viewModel.selectedNodeID == "organization:tesla")
+        #expect(viewModel.canNavigateBack)
+        #expect(viewModel.camera != originalCamera)
+
+        viewModel.navigateBack()
+
+        #expect(viewModel.selectedNodeID == "person:elon-musk")
+        #expect(viewModel.camera == originalCamera)
+        #expect(!viewModel.canNavigateBack)
+    }
+
+    @Test("Direct graph selection starts a new exploration path")
+    func directSelectionClearsHistory() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        viewModel.selectNode(id: "person:elon-musk")
+        viewModel.navigate(to: "organization:tesla")
+
+        viewModel.selectNode(id: "person:sam-altman")
+
+        #expect(viewModel.selectedNodeID == "person:sam-altman")
+        #expect(!viewModel.canNavigateBack)
+    }
 }

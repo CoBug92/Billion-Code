@@ -4,10 +4,22 @@ import SwiftUI
 struct BillionCodeApp: App {
     var body: some Scene {
         WindowGroup {
-            DenseGraphSceneView(
-                viewModel: DenseGraphViewModel(graph: DenseGraphFixture.performance)
+            DenseGraphRootView(
+                viewModel: Self.makeDenseGraphViewModel()
             )
         }
+    }
+
+    @MainActor
+    private static func makeDenseGraphViewModel() -> DenseGraphViewModel {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+#if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        if let flag = arguments.firstIndex(of: "-selectedNode"), arguments.indices.contains(flag + 1) {
+            viewModel.selectNode(id: arguments[flag + 1])
+        }
+#endif
+        return viewModel
     }
 
     private static func makeContainerViewModel() -> GraphContainerViewModel {

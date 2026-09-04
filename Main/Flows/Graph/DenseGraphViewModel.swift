@@ -15,6 +15,7 @@ final class DenseGraphViewModel {
     private(set) var selectedNodeID: GraphNode.ID?
     private(set) var highlightedNodeIDs = Set<GraphNode.ID>()
     private(set) var highlightedEdgeIDs = Set<DenseGraphEdge.ID>()
+    private(set) var navigationHistory: [NavigationEntry] = []
 
     private let nodesByID: [GraphNode.ID: GraphNode]
     private let edgesByNodeID: [GraphNode.ID: [DenseGraphEdge]]
@@ -45,6 +46,14 @@ final class DenseGraphViewModel {
         selectedNodeID != nil
     }
 
+    var selectedDossier: EntityDossier? {
+        selectedNodeID.flatMap { graph.dossier(id: $0) }
+    }
+
+    var canNavigateBack: Bool {
+        !navigationHistory.isEmpty
+    }
+
     // MARK: - Selection
 
     func selectNode(id: GraphNode.ID) {
@@ -54,25 +63,46 @@ final class DenseGraphViewModel {
             return
         }
 
-        selectedNodeID = id
-        let directEdges = edgesByNodeID[id, default: []]
-        highlightedNodeIDs = [id]
+        navigationHistory.removeAll()
+        applySelection(node)
+    }
+
+    func navigate(to id: GraphNode.ID) {
+        guard let node = nodesByID[id], selectedNodeID != id else { return }
+        if let selectedNodeID {
+            navigationHistory.append(NavigationEntry(nodeID: selectedNodeID, camera: camera))
+        }
+        applySelection(node)
+        focus(on: node.id)
+    }
+
+    func navigateBack() {
+        guard let previous = navigationHistory.popLast(), let node = nodesByID[previous.nodeID] else { return }
+        applySelection(node)
+        camera = previous.camera
+    }
+
+    private func applySelection(_ node: GraphNode) {
+
+        selectedNodeID = node.id
+        let directEdges = edgesByNodeID[node.id, default: []]
+        highlightedNodeIDs = [node.id]
         highlightedEdgeIDs = Set(directEdges.map(\.id))
 
         for edge in directEdges {
-            if let oppositeID = edge.opposite(id) {
+            if let oppositeID = edge.opposite(node.id) {
                 highlightedNodeIDs.insert(oppositeID)
             }
         }
 
         guard node.kind == .person else { return }
         let institutionEdges = directEdges.filter { edge in
-            guard let oppositeID = edge.opposite(id), let opposite = nodesByID[oppositeID] else { return false }
+            guard let oppositeID = edge.opposite(node.id), let opposite = nodesByID[oppositeID] else { return false }
             return opposite.kind == .organization || opposite.kind == .university
         }
 
         for selectedEdge in institutionEdges {
-            guard let institutionID = selectedEdge.opposite(id) else { continue }
+            guard let institutionID = selectedEdge.opposite(node.id) else { continue }
             for edge in edgesByNodeID[institutionID, default: []] {
                 guard edge.id == selectedEdge.id || periodsOverlap(selectedEdge, edge) else { continue }
                 highlightedEdgeIDs.insert(edge.id)
@@ -86,6 +116,7 @@ final class DenseGraphViewModel {
         selectedNodeID = nil
         highlightedNodeIDs.removeAll()
         highlightedEdgeIDs.removeAll()
+        navigationHistory.removeAll()
     }
 
     func isHighlighted(nodeID: GraphNode.ID) -> Bool {
@@ -121,6 +152,11 @@ final class DenseGraphViewModel {
         camera = GraphCamera(center: GraphPoint(x: 5_000, y: 5_000), scale: 0.035)
     }
 
+    func focus(on nodeID: GraphNode.ID) {
+        guard let node = nodesByID[nodeID] else { return }
+        camera.recenter(on: node.position)
+    }
+
     func visibleNodes(in viewport: CGSize, overscan: CGFloat = 80) -> [GraphNode] {
         graph.nodes.filter { node in
             let point = camera.screenPoint(for: node.position, viewport: viewport)
@@ -129,5 +165,12 @@ final class DenseGraphViewModel {
                 && point.x <= viewport.width + overscan
                 && point.y <= viewport.height + overscan
         }
+    }
+}
+
+extension DenseGraphViewModel {
+    struct NavigationEntry: Equatable, Sendable {
+        let nodeID: GraphNode.ID
+        let camera: GraphCamera
     }
 }

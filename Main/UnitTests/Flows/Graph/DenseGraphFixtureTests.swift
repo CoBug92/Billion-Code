@@ -37,4 +37,32 @@ struct DenseGraphFixtureTests {
             #expect(edge.sourceID != edge.targetID)
         }
     }
+
+    @Test("Every node has a matching dossier")
+    func completeDossiers() {
+        let graph = DenseGraphFixture.performance
+
+        #expect(graph.dossiers.count == graph.nodes.count)
+        for node in graph.nodes {
+            let dossier = graph.dossier(id: node.id)
+            #expect(dossier?.entityID == node.id)
+            #expect(dossier?.kind == node.kind)
+            #expect(dossier?.description.isEmpty == false)
+        }
+    }
+
+    @Test("Dossier links are current-first and point to graph nodes")
+    func dossierLinks() {
+        let graph = DenseGraphFixture.performance
+
+        for dossier in graph.dossiers.values {
+            for link in dossier.links {
+                if let entityID = link.entityID {
+                    #expect(graph.node(id: entityID) != nil)
+                }
+            }
+            let currentCount = dossier.sortedLinks.prefix { $0.isCurrent }.count
+            #expect(dossier.sortedLinks.dropFirst(currentCount).allSatisfy { !$0.isCurrent })
+        }
+    }
 }

@@ -3,9 +3,24 @@ import Foundation
 struct DenseGraphData: Sendable {
     let nodes: [GraphNode]
     let edges: [DenseGraphEdge]
+    let dossiers: [GraphNode.ID: EntityDossier]
+
+    init(
+        nodes: [GraphNode],
+        edges: [DenseGraphEdge],
+        dossiers: [GraphNode.ID: EntityDossier] = [:]
+    ) {
+        self.nodes = nodes
+        self.edges = edges
+        self.dossiers = dossiers
+    }
 
     func node(id: GraphNode.ID) -> GraphNode? {
         nodes.first { $0.id == id }
+    }
+
+    func dossier(id: GraphNode.ID) -> EntityDossier? {
+        dossiers[id]
     }
 }
 

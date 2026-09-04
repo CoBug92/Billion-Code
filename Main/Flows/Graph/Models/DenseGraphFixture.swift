@@ -63,7 +63,11 @@ private extension DenseGraphFixture {
                 position: positions[node.id] ?? GraphPoint(x: 5_000, y: 5_000)
             )
         }
-        return DenseGraphData(nodes: nodes, edges: edges)
+        return DenseGraphData(
+            nodes: nodes,
+            edges: edges,
+            dossiers: DenseGraphDossierFactory.make(nodes: nodes, edges: edges)
+        )
     }
 
     static func shortName(_ name: String) -> String {
