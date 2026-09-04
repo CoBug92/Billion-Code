@@ -14,6 +14,7 @@ final class DenseGraphViewModel {
     )
     private(set) var selectedNodeID: GraphNode.ID?
     private(set) var highlightedNodeIDs = Set<GraphNode.ID>()
+    private(set) var directlyConnectedNodeIDs = Set<GraphNode.ID>()
     private(set) var highlightedEdgeIDs = Set<DenseGraphEdge.ID>()
     private(set) var navigationHistory: [NavigationEntry] = []
 
@@ -87,11 +88,13 @@ final class DenseGraphViewModel {
         selectedNodeID = node.id
         let directEdges = edgesByNodeID[node.id, default: []]
         highlightedNodeIDs = [node.id]
+        directlyConnectedNodeIDs = [node.id]
         highlightedEdgeIDs = Set(directEdges.map(\.id))
 
         for edge in directEdges {
             if let oppositeID = edge.opposite(node.id) {
                 highlightedNodeIDs.insert(oppositeID)
+                directlyConnectedNodeIDs.insert(oppositeID)
             }
         }
 
@@ -115,6 +118,7 @@ final class DenseGraphViewModel {
     func clearSelection() {
         selectedNodeID = nil
         highlightedNodeIDs.removeAll()
+        directlyConnectedNodeIDs.removeAll()
         highlightedEdgeIDs.removeAll()
         navigationHistory.removeAll()
     }
@@ -129,7 +133,7 @@ final class DenseGraphViewModel {
 
     func shouldShowLabel(for node: GraphNode) -> Bool {
         if hasSelection {
-            return highlightedNodeIDs.contains(node.id)
+            return directlyConnectedNodeIDs.contains(node.id)
         }
         return node.kind != .person || degreesByNodeID[node.id, default: .zero] >= 4
     }

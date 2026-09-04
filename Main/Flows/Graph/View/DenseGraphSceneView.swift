@@ -64,7 +64,7 @@ private extension DenseGraphSceneView {
                     lineWidth: isHighlighted ? 2.2 : 0.75
                 )
 
-                if isHighlighted {
+                if isHighlighted && viewModel.camera.scale >= 0.07 {
                     drawLabels(
                         for: edge,
                         source: sourcePoint,
@@ -228,7 +228,8 @@ private extension DenseGraphSceneView {
     }
 
     func select(node: GraphNode) {
-        withAnimation(selectionAnimation) {
+        let animation = viewModel.hasSelection ? selectionAnimation : nil
+        withAnimation(animation) {
             viewModel.selectNode(id: node.id)
         }
     }

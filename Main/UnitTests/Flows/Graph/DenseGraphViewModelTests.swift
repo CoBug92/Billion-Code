@@ -16,6 +16,13 @@ struct DenseGraphViewModelTests {
         #expect(viewModel.highlightedNodeIDs.contains("person:larry-page"))
         #expect(!viewModel.highlightedNodeIDs.contains("person:sam-altman"))
         #expect(!viewModel.highlightedNodeIDs.contains("person:jeff-bezos"))
+        if let tesla = viewModel.graph.node(id: "organization:tesla"),
+           let straubel = viewModel.graph.node(id: "person:jb-straubel") {
+            #expect(viewModel.shouldShowLabel(for: tesla))
+            #expect(!viewModel.shouldShowLabel(for: straubel))
+        } else {
+            Issue.record("Required fixture nodes are missing")
+        }
     }
 
     @Test("Selecting an institution highlights only its direct neighborhood")

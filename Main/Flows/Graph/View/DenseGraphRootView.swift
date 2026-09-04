@@ -31,11 +31,11 @@ struct DenseGraphRootView: View {
                         onNavigate: navigate,
                         onBack: navigateBack
                     )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .ignoresSafeArea(edges: panelDetent == .expanded ? .all : .bottom)
+                    .offset(y: geometry.safeAreaInsets.bottom)
+                    .transition(.opacity)
+                    .ignoresSafeArea(edges: .bottom)
                 }
             }
-            .animation(.snappy, value: viewModel.selectedNodeID)
         }
     }
 }
@@ -43,16 +43,12 @@ struct DenseGraphRootView: View {
 private extension DenseGraphRootView {
     func navigate(to nodeID: GraphNode.ID) {
         panelDetent = .compact
-        withAnimation(.smooth) {
-            viewModel.navigate(to: nodeID)
-        }
+        viewModel.navigate(to: nodeID)
     }
 
     func navigateBack() {
         panelDetent = .compact
-        withAnimation(.smooth) {
-            viewModel.navigateBack()
-        }
+        viewModel.navigateBack()
     }
 }
 

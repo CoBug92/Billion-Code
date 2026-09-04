@@ -23,14 +23,14 @@ struct DenseGraphNodeView: View {
                         .fixedSize()
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        .background(Asset.Colors.surfacePrimary.swiftUIColor.opacity(0.92), in: Capsule())
+                        .overlay(Capsule().stroke(.secondary.opacity(0.12)))
                         .transition(.opacity)
                 }
             }
         }
         .buttonStyle(.plain)
         .opacity(isHighlighted ? 1 : 0.13)
-        .animation(.easeOut(duration: 0.18), value: isHighlighted)
         .accessibilityLabel(node.name)
         .accessibilityValue(accessibilityValue)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
