@@ -68,7 +68,7 @@ Current/previous проходят checksum, decode и domain validation при �
 
 Bundled seed валидируется теми же fixtures/checks на build/release этапе. Его runtime failure считается дефектом bundle, а не сетевой ошибкой. Текущий app bootstrap фактически проходит `current → previous → musk-cluster-v1.json`; graph-domain validator декодирует сущности, claims, sources, relationships и editions и проверяет ссылочную целостность. Полный draft 2020-12 validator остаётся build/publisher gate, а не заявленной runtime-возможностью.
 
-Текущий `musk-cluster-v1.json` — локальный source-backed design dataset с 13 людьми и скрытыми контекстными организациями. Предварительная оценка состояния `$891.9B` датирована 2026-09-01 и явно не снимает B-001. Неаудированные портреты в bundle не добавляются: до закрытия B-002 клиент показывает системный силуэт.
+Текущий `musk-cluster-v1.json` — локальный source-backed dataset с 13 людьми и контекстными организациями. Оценка состояния Илона Маска `~$872.3B` датирована 2026-09-03. Портреты людей поставляются в bundle с указанием авторов и лицензий в `docs/portrait-attribution.md`; при отсутствии изображения клиент показывает инициалы.
 
 ## Refresh
 

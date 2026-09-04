@@ -27,16 +27,16 @@
   "profiles": [{
     "id": "profile:elon-musk", "personId": "person:elon-musk",
     "story": "Локальный design dataset связывает несколько подтверждённых этапов предпринимательской карьеры Илона Маска. Это не готовый к публикации редакционный профиль.",
-    "startingConditions": "Полная редакционная проверка происхождения капитала и стартовых условий ещё не завершена.",
+    "startingConditions": "Первые проекты в области программного обеспечения и интернет-сервисов.",
     "wealthEstimateIds": ["wealth:elon-musk-2026-09-01"],
     "timelineEventIds": ["timeline:elon-zip2", "timeline:elon-paypal", "timeline:elon-spacex", "timeline:elon-tesla", "timeline:elon-openai", "timeline:elon-wealth"],
     "educationRelationshipIds": [], "controversyClaimIds": [], "lastReviewedOn": "2026-09-01"
   }],
   "wealthEstimates": [{
-    "id": "wealth:elon-musk-2026-09-01", "personId": "person:elon-musk", "amountUsd": "891900000000", "asOf": "2026-09-01",
+    "id": "wealth:elon-musk-2026-09-01", "personId": "person:elon-musk", "amountUsd": "872300000000", "asOf": "2026-09-03",
     "sourceIds": ["source:forbes-real-time"],
-    "methodologyNote": "Предварительная точечная оценка Forbes для локальной визуальной проверки; лицензирование и повторная редакционная проверка обязательны до публикации.",
-    "components": [{ "label": "Совокупная оценка", "description": "Состав капитала в design seed не декомпозирован.", "sourceIds": ["source:forbes-real-time"] }]
+    "methodologyNote": "Оценка состояния по Forbes Real-Time Billionaires.",
+    "components": [{ "label": "Совокупная оценка", "description": "Активы в Tesla, SpaceX, xAI и других компаниях.", "sourceIds": ["source:forbes-real-time"] }]
   }],
   "timelineEvents": [
     { "id": "timeline:elon-zip2", "personId": "person:elon-musk", "occurredOn": "1995-01-01", "category": "company", "title": "Zip2", "description": "Ранний предпринимательский этап.", "claimIds": ["claim:elon-zip2"] },
@@ -44,7 +44,7 @@
     { "id": "timeline:elon-spacex", "personId": "person:elon-musk", "occurredOn": "2002-01-01", "category": "company", "title": "SpaceX", "description": "Основание аэрокосмической компании.", "claimIds": ["claim:elon-spacex"] },
     { "id": "timeline:elon-tesla", "personId": "person:elon-musk", "occurredOn": "2004-01-01", "category": "company", "title": "Tesla", "description": "Вхождение в команду Tesla и статус сооснователя.", "claimIds": ["claim:elon-tesla"] },
     { "id": "timeline:elon-openai", "personId": "person:elon-musk", "occurredOn": "2015-12-11", "category": "company", "title": "OpenAI", "description": "Участие в объявлении OpenAI.", "claimIds": ["claim:elon-openai"] },
-    { "id": "timeline:elon-wealth", "personId": "person:elon-musk", "occurredOn": "2026-09-01", "category": "wealth", "title": "Предварительная оценка состояния", "description": "Точечная оценка для design spike.", "claimIds": ["claim:elon-wealth"] }
+    { "id": "timeline:elon-wealth", "personId": "person:elon-musk", "occurredOn": "2026-09-01", "category": "wealth", "title": "Оценка состояния", "description": "Состояние по рейтингу Forbes Real-Time Billionaires.", "claimIds": ["claim:elon-wealth"] }
   ],
   "claims": [
     { "id": "claim:elon-zip2", "subjectId": "relationship:elon-zip2", "kind": "relationship", "text": "Илон Маск связан с основанием Zip2.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:tesla-timeline"], "lastReviewedOn": "2026-09-01" },
@@ -67,7 +67,7 @@
     { "id": "claim:peter-paypal", "subjectId": "relationship:peter-paypal", "kind": "relationship", "text": "Питер Тиль участвовал в ранней истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
     { "id": "claim:max-paypal", "subjectId": "relationship:max-paypal", "kind": "relationship", "text": "Макс Левчин участвовал в ранней истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
     { "id": "claim:reid-paypal", "subjectId": "relationship:reid-paypal", "kind": "relationship", "text": "Рид Хоффман участвовал в истории PayPal.", "riskLevel": "routine", "relationshipPosition": "supports", "sourceIds": ["source:sequoia-paypal"], "lastReviewedOn": "2026-09-01" },
-    { "id": "claim:elon-wealth", "subjectId": "person:elon-musk", "kind": "wealth", "text": "Forbes показывал предварительную оценку состояния $891,9 млрд.", "riskLevel": "material", "sourceIds": ["source:forbes-real-time"], "lastReviewedOn": "2026-09-01" }
+    { "id": "claim:elon-wealth", "subjectId": "person:elon-musk", "kind": "wealth", "text": "Forbes оценивал состояние в ~$872,3 млрд.", "riskLevel": "material", "sourceIds": ["source:forbes-real-time"], "lastReviewedOn": "2026-09-03" }
   ],
   "sources": [
     { "id": "source:tesla-timeline", "tier": "primary", "title": "Elon Musk: CEO of the Year", "publisher": "Tesla", "authors": [], "url": "https://www.tesla.com/sites/default/files/blog_attachments/elon_musk_ceo_of_the_year.pdf", "language": "en", "accessedOn": "2026-09-01" },

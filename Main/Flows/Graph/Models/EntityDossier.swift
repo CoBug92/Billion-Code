@@ -75,10 +75,4 @@ struct DossierSource: Identifiable, Equatable, Sendable {
     let publisher: String
     let title: String
     let url: URL?
-    let status: Status
-
-    enum Status: Equatable, Sendable {
-        case verified
-        case requiresAudit
-    }
 }

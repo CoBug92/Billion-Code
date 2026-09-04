@@ -13,6 +13,7 @@ private extension DenseGraphFixture {
                 name: profile.name,
                 shortName: shortName(profile.name),
                 summary: "",
+                portrait: portraitReference(for: profile.id),
                 position: GraphPoint(x: .zero, y: .zero)
             )
         }
@@ -60,6 +61,7 @@ private extension DenseGraphFixture {
                 name: node.name,
                 shortName: node.shortName,
                 summary: node.summary,
+                portrait: node.portrait,
                 position: positions[node.id] ?? GraphPoint(x: 5_000, y: 5_000)
             )
         }
@@ -75,6 +77,29 @@ private extension DenseGraphFixture {
         guard let first = parts.first, let last = parts.last else { return name }
         return parts.count > 1 ? "\(first.prefix(1)). \(last)" : name
     }
+
+    static func portraitReference(for personID: GraphNode.ID) -> GraphNode.PortraitReference? {
+        guard let resource = portraitResources[personID] else { return nil }
+        return GraphNode.PortraitReference(
+            bundledResource: resource,
+            accessibilityAttribution: "Wikimedia Commons"
+        )
+    }
+
+    static let portraitResources: [GraphNode.ID: String] = [
+        "person:elon-musk": "elon-musk.jpg", "person:kimbal-musk": "kimbal-musk.jpg",
+        "person:jb-straubel": "jb-straubel.jpg", "person:martin-eberhard": "martin-eberhard.jpg",
+        "person:gwynne-shotwell": "gwynne-shotwell.jpg", "person:sam-altman": "sam-altman.jpg",
+        "person:greg-brockman": "greg-brockman.jpg", "person:ilya-sutskever": "ilya-sutskever.jpg",
+        "person:peter-thiel": "peter-thiel.jpg", "person:max-levchin": "max-levchin.jpg",
+        "person:reid-hoffman": "reid-hoffman.jpg", "person:larry-page": "larry-page.jpg",
+        "person:sergey-brin": "sergey-brin.jpg", "person:eric-schmidt": "eric-schmidt.jpg",
+        "person:sundar-pichai": "sundar-pichai.jpg", "person:susan-wojcicki": "susan-wojcicki.jpg",
+        "person:mark-zuckerberg": "mark-zuckerberg.jpg", "person:dustin-moskovitz": "dustin-moskovitz.jpg",
+        "person:sheryl-sandberg": "sheryl-sandberg.jpg", "person:bill-gates": "bill-gates.jpg",
+        "person:steve-ballmer": "steve-ballmer.jpg", "person:satya-nadella": "satya-nadella.jpg",
+        "person:jeff-bezos": "jeff-bezos.jpg", "person:jensen-huang": "jensen-huang.jpg"
+    ]
 }
 
 // MARK: - Profiles

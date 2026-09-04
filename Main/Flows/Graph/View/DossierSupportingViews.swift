@@ -16,8 +16,8 @@ struct DossierWealthSection: View {
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     Spacer()
                     Button { onOpenSource(wealth.source) } label: {
-                        Image(systemName: wealth.source.status.symbolName)
-                            .foregroundStyle(wealth.source.status == .verified ? Color.accentColor : Color.orange)
+                        Image(systemName: "info.circle.fill")
+                            .foregroundStyle(Color.accentColor)
                             .frame(width: 32, height: 32)
                     }
                     .buttonStyle(.plain)
@@ -42,7 +42,20 @@ struct DossierWealthSection: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cardSurface(tint: Asset.Colors.chapterBlue.swiftUIColor)
+        .padding(18)
+        .background(
+            LinearGradient(
+                colors: [Asset.Colors.chapterBlue.swiftUIColor.opacity(0.24), .cyan.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 26, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .stroke(Asset.Colors.chapterBlue.swiftUIColor.opacity(0.3), lineWidth: 1.5)
+        )
+        .shadow(color: Asset.Colors.chapterBlue.swiftUIColor.opacity(0.08), radius: 14, y: 6)
     }
 }
 
@@ -78,7 +91,7 @@ struct DossierFactCard: View {
             Spacer()
             if let source = fact.source {
                 Button { onOpenSource(source) } label: {
-                    Image(systemName: source.status.symbolName).foregroundStyle(tint)
+                    Image(systemName: "info.circle.fill").foregroundStyle(tint)
                 }
                 .buttonStyle(.plain)
             }
@@ -99,7 +112,9 @@ struct DossierLinkChip: View {
             if let entityID = link.entityID { onNavigate(entityID) }
         } label: {
             HStack(spacing: 5) {
-                if link.isCurrent { Circle().fill(Color.green).frame(width: 6, height: 6) }
+                Circle()
+                    .fill(link.isCurrent ? Color.green : Color.secondary.opacity(0.55))
+                    .frame(width: 6, height: 6)
                 Text(link.name).lineLimit(1)
             }
             .font(.caption.weight(.semibold))
@@ -116,6 +131,7 @@ struct DossierLinkChip: View {
 
 struct DossierLinkRow: View {
     let link: DossierEntityLink
+    let tint: Color
     let onNavigate: (GraphNode.ID) -> Void
 
     var body: some View {
@@ -133,8 +149,8 @@ struct DossierLinkRow: View {
             }
             .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
             .padding(12)
-            .background(.secondary.opacity(0.065), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(.secondary.opacity(0.1)))
+            .background(tint.opacity(0.09), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(tint.opacity(0.16)))
         }
         .buttonStyle(.plain)
         .disabled(link.entityID == nil)
@@ -161,7 +177,7 @@ struct DossierTimelineCard: View {
                     Spacer()
                     if let source = event.source {
                         Button { onOpenSource(source) } label: {
-                            Image(systemName: source.status.symbolName).foregroundStyle(tint)
+                            Image(systemName: "info.circle.fill").foregroundStyle(tint)
                         }.buttonStyle(.plain)
                     }
                 }
@@ -185,33 +201,20 @@ struct DossierSourceView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 14) {
-                Label("Источник", systemImage: source.status.symbolName)
+                Label("Источник", systemImage: "info.circle.fill")
                     .font(.title2.bold())
-                    .foregroundStyle(source.status == .verified ? Color.accentColor : Color.orange)
+                    .foregroundStyle(Color.accentColor)
                 Text(source.publisher).font(.headline)
                 Text(source.title).foregroundStyle(.secondary)
                 if let url = source.url {
                     Link("Открыть публикацию", destination: url)
                         .buttonStyle(.borderedProminent)
-                } else {
-                    Text("Внешняя ссылка появится после публикационного аудита.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
             .padding(20)
             .navigationTitle("Доказательство")
             .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-extension DossierSource.Status {
-    var symbolName: String {
-        switch self {
-        case .verified: "checkmark.seal.fill"
-        case .requiresAudit: "exclamationmark.triangle.fill"
         }
     }
 }

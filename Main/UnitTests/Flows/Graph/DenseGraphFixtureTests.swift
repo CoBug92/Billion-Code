@@ -21,7 +21,9 @@ struct DenseGraphFixtureTests {
             let edges = graph.edges.filter { $0.connects(person.id) }
             #expect(edges.contains { $0.kind == .business })
             #expect(edges.contains { $0.kind == .education })
+            #expect(graph.dossier(id: person.id)?.wealth != nil)
         }
+        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count == 24)
     }
 
     @Test("Every edge points to unique existing nodes")
@@ -48,6 +50,19 @@ struct DenseGraphFixtureTests {
             #expect(dossier?.entityID == node.id)
             #expect(dossier?.kind == node.kind)
             #expect(dossier?.description.isEmpty == false)
+        }
+    }
+
+    @Test("Organizations and universities use specific public-facing types")
+    func specificEntityTypes() {
+        let graph = DenseGraphFixture.performance
+
+        for node in graph.nodes where node.kind == .organization || node.kind == .university {
+            let primaryFact = graph.dossier(id: node.id)?.facts.first?.value
+            #expect(primaryFact?.isEmpty == false)
+            #expect(primaryFact != "Компания или профессиональная организация")
+            #expect(primaryFact != "Технологические продукты и сервисы")
+            #expect(primaryFact != "Университет")
         }
     }
 

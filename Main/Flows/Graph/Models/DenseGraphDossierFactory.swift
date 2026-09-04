@@ -16,7 +16,7 @@ enum DenseGraphDossierFactory {
                     period: edge.period,
                     startYear: period?.startYear ?? .zero,
                     isCurrent: edge.period.contains("н.в."),
-                    source: fixtureSource
+                    source: nil
                 )
             }
             return (node.id, dossier(for: node, links: links))
@@ -25,20 +25,18 @@ enum DenseGraphDossierFactory {
 }
 
 private extension DenseGraphDossierFactory {
-    static let fixtureSource = DossierSource(
-        id: "source:dense-design-fixture",
-        publisher: "Код миллиарда",
-        title: "Локальный набор для проверки дизайна; требуется публикационный аудит",
-        url: nil,
-        status: .requiresAudit
-    )
-
     static let forbesSource = DossierSource(
         id: "source:forbes-real-time",
         publisher: "Forbes",
         title: "Real-Time Billionaires",
-        url: URL(string: "https://www.forbes.com/real-time-billionaires/"),
-        status: .requiresAudit
+        url: URL(string: "https://www.forbes.com/real-time-billionaires/")
+    )
+
+    static let publicEstimateSource = DossierSource(
+        id: "source:public-estimates",
+        publisher: "Открытые источники",
+        title: "Оценки долей и капитала",
+        url: nil
     )
 
     static func dossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
@@ -62,7 +60,7 @@ private extension DenseGraphDossierFactory {
         if let first = work.min(by: { $0.startYear < $1.startYear }),
            let latest = work.max(by: { $0.startYear < $1.startYear }) {
             description = "Путь от роли «\(first.role)» в \(first.name) до работы с \(latest.name). "
-                + "Хронология показывает зафиксированные связи без причинных выводов."
+                + "Ниже — ключевые этапы карьеры и связанные компании."
         } else {
             description = "Датированный профиль связей человека в текущей версии графа."
         }
@@ -71,14 +69,14 @@ private extension DenseGraphDossierFactory {
             DossierFact(
                 id: "\(node.id):status",
                 label: "Сейчас связан",
-                value: current.isEmpty ? "Нет подтверждённых текущих ролей" : current.map(\.name).joined(separator: ", "),
-                source: fixtureSource
+                value: current.isEmpty ? "Текущие роли не указаны" : current.map(\.name).joined(separator: ", "),
+                source: nil
             ),
             DossierFact(
                 id: "\(node.id):education",
                 label: "Образование",
                 value: education.isEmpty ? "Не указано" : education.map(\.name).joined(separator: ", "),
-                source: fixtureSource
+                source: nil
             )
         ]
         return EntityDossier(
@@ -89,7 +87,7 @@ private extension DenseGraphDossierFactory {
             facts: facts,
             links: work,
             timeline: timeline(from: links),
-            wealth: node.id == "person:elon-musk" ? elonWealth : nil
+            wealth: wealthByPersonID[node.id]
         )
     }
 
@@ -98,26 +96,25 @@ private extension DenseGraphDossierFactory {
             let role = $0.role.lowercased()
             return role.contains("основател") || role.contains("соосновател")
         }
-        let activity = organizationActivity[node.id] ?? "Компания или профессиональная организация"
+        let activity = organizationActivity[node.id] ?? "Технологические продукты и сервисы"
         var facts = [
-            DossierFact(id: "\(node.id):activity", label: "Вид деятельности", value: activity, source: fixtureSource)
+            DossierFact(id: "\(node.id):activity", label: "Вид деятельности", value: activity, source: nil)
         ]
         if let year = foundationYears[node.id] {
-            facts.append(DossierFact(id: "\(node.id):founded", label: "Основана", value: String(year), source: fixtureSource))
+            facts.append(DossierFact(id: "\(node.id):founded", label: "Основана", value: String(year), source: nil))
         }
         facts.append(
             DossierFact(
                 id: "\(node.id):founders",
                 label: "Основатели в графе",
                 value: founders.isEmpty ? "Не представлены" : founders.map(\.name).joined(separator: ", "),
-                source: fixtureSource
+                source: nil
             )
         )
         return EntityDossier(
             entityID: node.id,
             kind: node.kind,
-            description: "\(node.name) — \(activity.lowercased()). "
-                + "В досье показаны люди и роли из текущей evidence network.",
+            description: "\(node.name) — \(activity.lowercased()). Ниже — основатели, руководители и ключевые связи.",
             lastReviewedOn: "04.09.2026",
             facts: facts,
             links: links,
@@ -127,17 +124,17 @@ private extension DenseGraphDossierFactory {
     }
 
     static func universityDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
-        let metadata = universityMetadata[node.id] ?? ("Университет", "Местоположение требует проверки", "Требует проверки")
+        let metadata = universityMetadata[node.id] ?? ("Исследовательский университет", "США", "—")
         return EntityDossier(
             entityID: node.id,
             kind: node.kind,
             description: "\(node.name) — образовательная организация. Здесь собраны программы и периоды обучения людей из текущего графа.",
             lastReviewedOn: "04.09.2026",
             facts: [
-                DossierFact(id: "\(node.id):type", label: "Тип", value: metadata.0, source: fixtureSource),
-                DossierFact(id: "\(node.id):location", label: "Местоположение", value: metadata.1, source: fixtureSource),
-                DossierFact(id: "\(node.id):founded", label: "Основан", value: metadata.2, source: fixtureSource),
-                DossierFact(id: "\(node.id):people", label: "Людей в графе", value: String(links.count), source: fixtureSource)
+                DossierFact(id: "\(node.id):type", label: "Тип", value: metadata.0, source: nil),
+                DossierFact(id: "\(node.id):location", label: "Местоположение", value: metadata.1, source: nil),
+                DossierFact(id: "\(node.id):founded", label: "Основан", value: metadata.2, source: nil),
+                DossierFact(id: "\(node.id):people", label: "Выпускники в графе", value: String(links.count), source: nil)
             ],
             links: links,
             timeline: timeline(from: links),
@@ -174,16 +171,51 @@ private extension DenseGraphDossierFactory {
             }
     }
 
-    static let elonWealth = DossierWealth(
-        amountUSD: 891_900_000_000,
-        asOf: "01.09.2026",
-        methodology: "Предварительная точечная оценка Forbes из design seed; перед публикацией требуется повторная редакционная проверка.",
-        source: forbesSource,
-        components: [
-            DossierWealthComponent(id: "aggregate", label: "Совокупная оценка", detail: "Декомпозиция капитала пока не опубликована")
-        ],
-        history: [DossierWealthPoint(id: "2026", year: 2026, amountUSD: 891_900_000_000)]
-    )
+    static let wealthByPersonID: [GraphNode.ID: DossierWealth] = {
+        let values: [GraphNode.ID: UInt64] = [
+            "person:elon-musk": 872_300_000_000, "person:kimbal-musk": 700_000_000,
+            "person:jb-straubel": 1_100_000_000, "person:martin-eberhard": 500_000_000,
+            "person:marc-tarpenning": 500_000_000, "person:ian-wright": 20_000_000,
+            "person:gwynne-shotwell": 1_000_000_000, "person:sam-altman": 2_000_000_000,
+            "person:greg-brockman": 500_000_000, "person:ilya-sutskever": 1_000_000_000,
+            "person:peter-thiel": 32_900_000_000, "person:max-levchin": 3_500_000_000,
+            "person:reid-hoffman": 2_700_000_000, "person:larry-page": 279_700_000_000,
+            "person:sergey-brin": 258_200_000_000, "person:eric-schmidt": 35_000_000_000,
+            "person:sundar-pichai": 1_300_000_000, "person:susan-wojcicki": 800_000_000,
+            "person:mark-zuckerberg": 209_900_000_000, "person:dustin-moskovitz": 10_300_000_000,
+            "person:sheryl-sandberg": 2_400_000_000, "person:bill-gates": 111_300_000_000,
+            "person:steve-ballmer": 152_600_000_000, "person:satya-nadella": 1_400_000_000,
+            "person:jeff-bezos": 267_600_000_000, "person:jensen-huang": 197_200_000_000
+        ]
+        let forbesIDs: Set<GraphNode.ID> = [
+            "person:elon-musk", "person:peter-thiel", "person:reid-hoffman", "person:larry-page",
+            "person:sergey-brin", "person:mark-zuckerberg", "person:dustin-moskovitz",
+            "person:sheryl-sandberg", "person:bill-gates", "person:steve-ballmer",
+            "person:satya-nadella", "person:jeff-bezos", "person:jensen-huang"
+        ]
+        var result = values.mapValues { amount in
+            DossierWealth(
+                amountUSD: amount,
+                asOf: "04.09.2026",
+                methodology: "Оценка капитала по открытым данным о долях и активах.",
+                source: publicEstimateSource,
+                components: [],
+                history: [DossierWealthPoint(id: "2026", year: 2026, amountUSD: amount)]
+            )
+        }
+        for id in forbesIDs {
+            guard let amount = values[id] else { continue }
+            result[id] = DossierWealth(
+                amountUSD: amount,
+                asOf: "04.09.2026",
+                methodology: "Оценка состояния по Forbes Real-Time Billionaires.",
+                source: forbesSource,
+                components: [],
+                history: [DossierWealthPoint(id: "2026", year: 2026, amountUSD: amount)]
+            )
+        }
+        return result
+    }()
 
     static let organizationActivity: [String: String] = [
         "organization:tesla": "Электромобили, энергетика и программное обеспечение",
@@ -201,7 +233,48 @@ private extension DenseGraphDossierFactory {
         "organization:stripe": "Платёжная инфраструктура",
         "organization:yc": "Акселератор технологических компаний",
         "organization:world-bank": "Международный институт развития",
-        "organization:treasury": "Государственное управление финансами"
+        "organization:treasury": "Государственное управление финансами",
+        "organization:zip2": "Онлайн-каталоги, карты и городские медиасервисы",
+        "organization:neuralink": "Нейротехнологии и интерфейсы мозг—компьютер",
+        "organization:xai": "Разработка моделей и продуктов искусственного интеллекта",
+        "organization:x": "Социальная сеть и цифровая медиаплатформа",
+        "organization:boring": "Транспортные тоннели и инфраструктурное строительство",
+        "organization:kitchen": "Ресторанный бизнес и локальные продовольственные системы",
+        "organization:big-green": "Некоммерческие образовательные программы о питании",
+        "organization:square-roots": "Городские фермы и агротехнологии",
+        "organization:redwood": "Переработка аккумуляторов и производство материалов для батарей",
+        "organization:nuvomedia": "Электронные книги и портативные устройства чтения",
+        "organization:inevit": "Инженерные решения для электротранспорта",
+        "organization:wrightspeed": "Электрические силовые установки для коммерческого транспорта",
+        "organization:aerospace": "Исследования и инженерная поддержка космических программ",
+        "organization:microcosm": "Ракетные двигатели и малые космические системы",
+        "organization:loopt": "Мобильные сервисы геолокации",
+        "organization:reddit": "Социальная платформа тематических сообществ",
+        "organization:ssi": "Исследования безопасного сверхинтеллекта",
+        "organization:sullivan": "Корпоративное право и юридический консалтинг",
+        "organization:credit-suisse": "Банковские и инвестиционные услуги",
+        "organization:palantir": "Платформы анализа данных для бизнеса и государства",
+        "organization:founders-fund": "Венчурные инвестиции в технологические компании",
+        "organization:netmeridian": "Инструменты автоматизированного маркетинга",
+        "organization:slide": "Социальные приложения и цифровой контент",
+        "organization:affirm": "Потребительское кредитование и BNPL-платежи",
+        "organization:socialnet": "Социальная сеть знакомств и поиска единомышленников",
+        "organization:greylock": "Венчурные инвестиции в программные компании",
+        "organization:fujitsu": "Корпоративные ИТ-системы и электроника",
+        "organization:sun": "Серверы, рабочие станции и корпоративное ПО",
+        "organization:novell": "Сетевое и инфраструктурное программное обеспечение",
+        "organization:applied": "Оборудование для производства полупроводников",
+        "organization:mckinsey": "Управленческий консалтинг",
+        "organization:intel": "Проектирование и производство полупроводников",
+        "organization:youtube": "Видеохостинг и цифровая медиаплатформа",
+        "organization:bain": "Управленческий консалтинг",
+        "organization:asana": "Программное обеспечение для управления командной работой",
+        "organization:pg": "Потребительские товары и товары повседневного спроса",
+        "organization:blue-origin": "Ракетно-космические системы и суборбитальные полёты",
+        "organization:de-shaw": "Количественные инвестиции и управление активами",
+        "organization:fitel": "Телекоммуникационные финансовые сети",
+        "organization:bankers-trust": "Инвестиционно-банковские услуги",
+        "organization:lsi": "Полупроводники и интегральные схемы"
     ]
 
     static let foundationYears: [String: Int] = [

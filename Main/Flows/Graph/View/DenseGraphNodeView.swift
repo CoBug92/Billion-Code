@@ -44,8 +44,7 @@ private extension DenseGraphNodeView {
     var symbol: some View {
         switch node.kind {
         case .person:
-            Circle()
-                .fill(node.kind.denseGraphColor.gradient)
+            PersonAvatarView(node: node, diameter: symbolSize, accentColor: node.kind.denseGraphColor)
                 .overlay(selectionStroke(Circle()))
                 .shadow(color: node.kind.denseGraphColor.opacity(isHighlighted ? 0.45 : 0.12), radius: 8)
         case .organization:
