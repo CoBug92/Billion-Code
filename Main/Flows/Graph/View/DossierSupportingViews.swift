@@ -3,32 +3,15 @@ import SwiftUI
 struct DossierWealthSection: View {
     let wealth: DossierWealth
     let formattedAmount: String
-    let onOpenSource: (DossierSource) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Оценка состояния", systemImage: "chart.line.uptrend.xyaxis")
+            Label("Оценка состояния", systemImage: AppSymbols.wealth)
                 .font(.headline)
                 .foregroundStyle(Asset.Colors.chapterBlue.swiftUIColor)
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(formattedAmount)
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    Spacer()
-                    Button { onOpenSource(wealth.source) } label: {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundStyle(Color.accentColor)
-                            .frame(width: 32, height: 32)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Открыть источник: \(wealth.source.publisher)")
-                }
-                Text("На \(wealth.asOf)")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Text(wealth.methodology)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(formattedAmount)
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
                 ForEach(wealth.components) { component in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(component.label).font(.subheadline.bold())
@@ -79,21 +62,12 @@ extension View {
 
 struct DossierFactCard: View {
     let fact: DossierFact
-    let tint: Color
-    let onOpenSource: (DossierSource) -> Void
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(fact.label).font(.caption).foregroundStyle(.secondary)
                 Text(fact.value).font(.subheadline.weight(.semibold))
-            }
-            Spacer()
-            if let source = fact.source {
-                Button { onOpenSource(source) } label: {
-                    Image(systemName: "info.circle.fill").foregroundStyle(tint)
-                }
-                .buttonStyle(.plain)
             }
         }
         .padding(12)
@@ -145,7 +119,7 @@ struct DossierLinkRow: View {
                     Text("\(link.role) · \(link.period)").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                if link.entityID != nil { Image(systemName: "chevron.right").font(.caption.bold()) }
+                if link.entityID != nil { Image(systemName: AppSymbols.chevron).font(.caption.bold()) }
             }
             .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
             .padding(12)
@@ -161,7 +135,6 @@ struct DossierTimelineCard: View {
     let event: DossierTimelineEvent
     let tint: Color
     let onNavigate: (GraphNode.ID) -> Void
-    let onOpenSource: (DossierSource) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -172,50 +145,25 @@ struct DossierTimelineCard: View {
                 .frame(minWidth: 48, minHeight: 30)
                 .background(tint.opacity(0.12), in: Capsule())
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(event.title).font(.subheadline.bold())
-                    Spacer()
-                    if let source = event.source {
-                        Button { onOpenSource(source) } label: {
-                            Image(systemName: "info.circle.fill").foregroundStyle(tint)
-                        }.buttonStyle(.plain)
-                    }
-                }
+                Text(event.title).font(.subheadline.bold())
                 Text(event.description).font(.caption).foregroundStyle(.secondary)
-                if let entityID = event.linkedEntityID {
-                    Button("Перейти к ноде") { onNavigate(entityID) }
-                        .font(.caption.bold()).buttonStyle(.plain).foregroundStyle(tint)
-                }
             }
             .padding(.vertical, 3)
+            Spacer()
+            if let entityID = event.linkedEntityID {
+                Button { onNavigate(entityID) } label: {
+                    Image(systemName: AppSymbols.chevron)
+                        .font(.caption.bold())
+                        .foregroundStyle(tint)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.Graph.Dossier.openNode(event.title))
+            }
         }
         .padding(12)
         .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.bottom, 9)
-    }
-}
-
-struct DossierSourceView: View {
-    let source: DossierSource
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 14) {
-                Label("Источник", systemImage: "info.circle.fill")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.accentColor)
-                Text(source.publisher).font(.headline)
-                Text(source.title).foregroundStyle(.secondary)
-                if let url = source.url {
-                    Link("Открыть публикацию", destination: url)
-                        .buttonStyle(.borderedProminent)
-                }
-                Spacer()
-            }
-            .padding(20)
-            .navigationTitle("Доказательство")
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 }
 

@@ -1,82 +1,94 @@
 import SwiftUI
+
 struct DenseGraphDossierPanel: View {
+
+    // MARK: - Properties
+
     let node: GraphNode
     let dossier: EntityDossier
     let availableHeight: CGFloat
-    let topSafeArea: CGFloat
     let bottomSafeArea: CGFloat
     let canNavigateBack: Bool
     @Binding var detent: DenseDossierDetent
     let onNavigate: (GraphNode.ID) -> Void
     let onBack: () -> Void
+    let onClose: () -> Void
+    let onCompactHeightChange: (GraphNode.ID, CGFloat) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var presentedSource: DossierSource?
-    @GestureState private var dragTranslation = CGFloat.zero
+    @State private var compactBodyHeight = CGFloat.zero
+    @State private var headerHeight = CGFloat.zero
+    @State private var expandedScrollOffset = CGFloat.zero
+    @State private var dragTranslation = CGFloat.zero
+
+    // MARK: - Layout
 
     var body: some View {
         VStack(spacing: .zero) {
             panelHeader
-            if detent == .compact {
-                compactContent
-                    .transition(.opacity)
-            } else {
+            if detent == .expanded {
                 expandedContent
-                    .transition(.opacity)
+            } else {
+                compactContent
             }
+        }
+        .onChange(of: measuredCompactPanelHeight, initial: true) { _, newHeight in
+            guard headerHeight > .zero, newHeight > headerHeight else { return }
+            onCompactHeightChange(node.id, newHeight)
         }
         .frame(maxWidth: .infinity)
         .frame(height: currentHeight, alignment: .top)
-        .background(panelBackground)
+        .background(Asset.Colors.surfacePrimary.swiftUIColor)
         .clipShape(panelShape)
         .overlay(panelShape.stroke(.white.opacity(0.1), lineWidth: 1))
         .shadow(color: .black.opacity(0.3), radius: 22, y: -6)
-        .animation(reduceMotion ? nil : .interactiveSpring(response: 0.36, dampingFraction: 0.86), value: detent)
-        .accessibilityAction(named: detent == .compact ? "Развернуть" : "Свернуть") {
-            setDetent(detent == .compact ? .expanded : .compact)
+        .offset(y: dismissOffset)
+        .accessibilityAction(named: detent == .expanded ? "Свернуть" : "Развернуть") {
+            toggleDetent()
         }
-        .sheet(item: $presentedSource) { source in
-            DossierSourceView(source: source)
-                .presentationDetents([.medium])
+        .accessibilityAction(named: L10n.Graph.Dossier.close) {
+            onClose()
         }
     }
 }
+
+// MARK: - Layout
+
 private extension DenseGraphDossierPanel {
-    var compactHeight: CGFloat {
-        let baseHeight = DenseDossierDetent.compact.height(
-            availableHeight: availableHeight,
-            topSafeArea: topSafeArea,
-            bottomSafeArea: bottomSafeArea
-        )
-        let preferredContentHeight: CGFloat = switch node.kind {
-        case .person: 420
-        case .organization: 350
-        case .university: 390
-        default: 300
-        }
-        let maximumFraction = node.kind == .person ? 0.6 : 0.52
-        return min(max(baseHeight, preferredContentHeight + bottomSafeArea), availableHeight * maximumFraction)
-    }
     var restingHeight: CGFloat {
         detent.height(
+            collapsedHeight: collapsedHeight,
+            compactHeight: measuredCompactPanelHeight,
             availableHeight: availableHeight,
-            topSafeArea: topSafeArea,
             bottomSafeArea: bottomSafeArea
         )
-    }
-    var currentHeight: CGFloat {
-        let effectiveDrag = detent == .compact ? min(dragTranslation, 0) : max(dragTranslation, 0)
-        let expandedHeight = DenseDossierDetent.expanded.height(
-            availableHeight: availableHeight,
-            topSafeArea: topSafeArea,
-            bottomSafeArea: bottomSafeArea
-        )
-        return min(max(restingHeight - effectiveDrag, compactHeight), expandedHeight)
     }
 
-    var panelBackground: some ShapeStyle {
-        AnyShapeStyle(Asset.Colors.surfacePrimary.swiftUIColor)
+    var currentHeight: CGFloat {
+        let lowerHeight = detent.lowerNeighbor.height(
+            collapsedHeight: collapsedHeight,
+            compactHeight: measuredCompactPanelHeight,
+            availableHeight: availableHeight,
+            bottomSafeArea: bottomSafeArea
+        )
+        let upperHeight = detent.upperNeighbor.height(
+            collapsedHeight: collapsedHeight,
+            compactHeight: measuredCompactPanelHeight,
+            availableHeight: availableHeight,
+            bottomSafeArea: bottomSafeArea
+        )
+        return min(max(restingHeight - dragTranslation, lowerHeight), upperHeight)
     }
+
+    var dismissOffset: CGFloat {
+        detent == .collapsed ? max(dragTranslation, .zero) : .zero
+    }
+
+    var measuredCompactPanelHeight: CGFloat { measuredHeaderHeight + (compactBodyViewportHeight ?? .zero) }
+
+    var collapsedHeight: CGFloat { measuredHeaderHeight + bottomSafeArea }
+
+    var measuredHeaderHeight: CGFloat { headerHeight > .zero ? headerHeight : DenseDossierDetent.fallbackCollapsedHeight }
 
     var panelShape: UnevenRoundedRectangle {
         UnevenRoundedRectangle(
@@ -88,48 +100,73 @@ private extension DenseGraphDossierPanel {
         )
     }
 
+    // MARK: - Content
+
     var panelHeader: some View {
         DossierPanelHeader(
             node: node,
             eyebrowText: eyebrowText,
-            personMetadata: personMetadata,
+            metadataText: headerMetadata,
             detent: detent,
             canNavigateBack: canNavigateBack,
             onBack: onBack,
-            onToggle: { setDetent(detent == .compact ? .expanded : .compact) }
+            onToggle: toggleDetent
         )
         .contentShape(Rectangle())
         .gesture(dragGesture)
-    }
-
-    var eyebrowText: String? {
-        switch node.kind {
-        case .person: nil
-        case .organization: dossier.facts.first { $0.id.hasSuffix(":activity") }?.value
-        case .university: dossier.facts.first { $0.id.hasSuffix(":type") }?.value
-        default: node.kind.dossierTitle
+        .onGeometryChange(for: CGFloat.self) { geometry in
+            geometry.size.height
+        } action: { _, newHeight in
+            headerHeight = newHeight
         }
     }
 
     var compactContent: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            compactPrimaryFact
-            if node.kind == .person {
-                CompactPersonCloudGroups(
-                    companies: dossier.currentLinks.isEmpty ? dossier.sortedLinks : dossier.currentLinks,
-                    universities: dossier.education,
-                    onNavigate: onNavigate
-                )
-            } else if node.kind != .organization && node.kind != .university {
-                compactLinks
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 9) {
+                compactPrimaryFact
+                if node.kind == .person {
+                    CompactPersonCloudGroups(
+                        companies: dossier.sortedLinks,
+                        universities: dossier.education,
+                        onNavigate: onNavigate
+                    )
+                } else if node.kind == .organization {
+                    organizationPeopleClouds
+                } else if node.kind != .organization && node.kind != .university {
+                    compactLinks
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 7)
+            .padding(.bottom, bottomSafeArea + 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.height
+            } action: { _, newHeight in
+                compactBodyHeight = newHeight
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 7)
-        .padding(.bottom, bottomSafeArea + 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: compactBodyViewportHeight)
+        .scrollBounceBehavior(.basedOnSize)
+        .overlay(alignment: .top) {
+            if detent == .collapsed {
+                Asset.Colors.surfacePrimary.swiftUIColor.frame(height: bottomSafeArea)
+            }
+        }
+        .accessibilityHidden(detent == .collapsed)
         .contentShape(Rectangle())
         .simultaneousGesture(dragGesture)
+    }
+
+    var compactBodyViewportHeight: CGFloat? {
+        guard compactBodyHeight > .zero else { return nil }
+        return DenseDossierDetent.compactBodyHeight(
+            contentHeight: compactBodyHeight,
+            headerHeight: headerHeight,
+            availableHeight: availableHeight,
+            bottomSafeArea: bottomSafeArea
+        )
     }
 
     @ViewBuilder
@@ -138,18 +175,13 @@ private extension DenseGraphDossierPanel {
         case .person:
             if let wealth = dossier.wealth {
                 CompactWealthCard(
-                    wealth: wealth,
                     formattedAmount: formatUSD(wealth.amountUSD)
                 )
             }
         case .organization:
             CompactOrganizationCloud(
-                activity: dossier.facts.first { $0.id.hasSuffix(":activity") }?.value ?? node.summary,
-                founders: dossier.links.filter { link in
-                    let role = link.role.lowercased()
-                    return role.contains("основател") || role.contains("соосновател")
-                },
-                onNavigate: onNavigate
+                activity: organizationActivity,
+                title: L10n.Graph.Dossier.activity
             )
         case .university:
             CompactUniversityCloud(
@@ -160,14 +192,13 @@ private extension DenseGraphDossierPanel {
                 onNavigate: onNavigate
             )
         default:
-            if let first = dossier.facts.first { factLine(first) }
+            if let first = dossier.facts.first { DossierFactCard(fact: first) }
         }
     }
 
     var compactLinks: some View {
-        let visible = dossier.currentLinks.isEmpty ? dossier.sortedLinks : dossier.currentLinks
-        return FlowLayout(spacing: 7) {
-            ForEach(visible) { link in
+        FlowLayout(spacing: 7) {
+            ForEach(dossier.currentLinks.isEmpty ? dossier.sortedLinks : dossier.currentLinks) { link in
                 linkChip(link)
             }
         }
@@ -177,18 +208,39 @@ private extension DenseGraphDossierPanel {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
-                    storyCard
+                    if node.kind == .organization {
+                        CompactOrganizationCloud(
+                            activity: organizationActivity,
+                            title: L10n.Graph.Dossier.activity
+                        )
+                        organizationPeopleClouds
+                    } else if node.kind == .university {
+                        universityTypeCard
+                    } else {
+                        storyCard
+                    }
 
                     if let wealth = dossier.wealth {
                         DossierWealthSection(
                             wealth: wealth,
-                            formattedAmount: formatUSD(wealth.amountUSD),
-                            onOpenSource: { presentedSource = $0 }
+                            formattedAmount: formatUSD(wealth.amountUSD)
                         )
                     }
 
-                    factsSection
-                    linksSection
+                    if node.kind == .person {
+                        CompactPersonCloudGroups(
+                            companies: dossier.sortedLinks,
+                            universities: dossier.education,
+                            onNavigate: onNavigate
+                        )
+                    }
+
+                    if node.kind == .university {
+                        universityPeopleSection
+                    } else if node.kind != .person && node.kind != .organization {
+                        factsSection
+                        linksSection
+                    }
                     timelineIndex(proxy: proxy)
                     timelineSection
 
@@ -200,12 +252,21 @@ private extension DenseGraphDossierPanel {
                 .padding(.top, 12)
                 .padding(.bottom, bottomSafeArea + 28)
             }
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top
+            } action: { _, newValue in
+                expandedScrollOffset = newValue
+            }
+            .simultaneousGesture(expandedCollapseGesture)
         }
     }
 
     var storyCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(node.kind == .person ? "Коротко о пути" : "Коротко о главном", systemImage: "quote.opening")
+            Label(
+                "Коротко о пути",
+                systemImage: AppSymbols.quote
+            )
                 .font(.caption.bold())
                 .foregroundStyle(node.kind.denseGraphColor)
             Text(dossier.description)
@@ -216,17 +277,15 @@ private extension DenseGraphDossierPanel {
     }
 
     var factsSection: some View {
-        dossierSection(title: node.kind == .university ? "О вузе" : "Главное") {
+        dossierSection(title: "Главное") {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
-                ForEach(dossier.facts) { fact in
-                    factLine(fact)
-                }
+                ForEach(dossier.facts) { DossierFactCard(fact: $0) }
             }
         }
     }
 
     var linksSection: some View {
-        dossierSection(title: linksTitle) {
+        dossierSection(title: "Связанные ноды") {
             LazyVStack(spacing: 8) {
                 ForEach(dossier.sortedLinks) { link in
                     linkRow(link)
@@ -239,19 +298,25 @@ private extension DenseGraphDossierPanel {
         dossierSection(title: node.kind == .person ? "Как сложился путь" : "Хронология связей") {
             LazyVStack(spacing: .zero) {
                 ForEach(dossier.timeline) { event in
-                    timelineRow(event)
+                    DossierTimelineCard(
+                        event: event,
+                        tint: timelineTint(for: event),
+                        onNavigate: onNavigate
+                    )
                         .id(event.id)
                 }
             }
         }
     }
 
+    // MARK: - Private methods
+
     func timelineIndex(proxy: ScrollViewProxy) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(dossier.timeline) { event in
-                    Button(String(event.year)) {
-                        withAnimation(.smooth) { proxy.scrollTo(event.id, anchor: .top) }
+                ForEach(timelineYearAnchors, id: \.year) { anchor in
+                    Button(String(anchor.year)) {
+                        withAnimation(.smooth) { proxy.scrollTo(anchor.eventID, anchor: .top) }
                     }
                     .font(.caption.bold())
                     .buttonStyle(.plain)
@@ -264,25 +329,12 @@ private extension DenseGraphDossierPanel {
         }
     }
 
-    func factLine(_ fact: DossierFact) -> some View {
-        DossierFactCard(fact: fact, tint: node.kind.denseGraphColor) { presentedSource = $0 }
-    }
-
     func linkChip(_ link: DossierEntityLink) -> some View {
         DossierLinkChip(link: link, tint: color(for: link), onNavigate: onNavigate)
     }
 
     func linkRow(_ link: DossierEntityLink) -> some View {
         DossierLinkRow(link: link, tint: color(for: link), onNavigate: onNavigate)
-    }
-
-    func timelineRow(_ event: DossierTimelineEvent) -> some View {
-        DossierTimelineCard(
-            event: event,
-            tint: node.kind.denseGraphColor,
-            onNavigate: onNavigate,
-            onOpenSource: { presentedSource = $0 }
-        )
     }
 
     func dossierSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -294,66 +346,53 @@ private extension DenseGraphDossierPanel {
         .cardSurface(tint: node.kind.denseGraphColor)
     }
 
-    func sourceButton(_ source: DossierSource) -> some View {
-        Button { presentedSource = source } label: {
-            Image(systemName: "info.circle.fill")
-                .foregroundStyle(node.kind.denseGraphColor)
-                .frame(width: 32, height: 32)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Открыть источник: \(source.publisher)")
-    }
-
-    var linksTitle: String {
-        switch node.kind {
-        case .person: "Компании и активы"
-        case .organization: "Основатели и связанные люди"
-        case .university: "Люди и программы"
-        default: "Связанные ноды"
-        }
-    }
-
-    func color(for link: DossierEntityLink) -> Color {
-        if link.entityID?.hasPrefix("organization:") == true {
-            return GraphEntityKind.organization.denseGraphColor
-        }
-        if link.entityID?.hasPrefix("university:") == true {
-            return GraphEntityKind.university.denseGraphColor
-        }
-        return GraphEntityKind.person.denseGraphColor
-    }
+    // MARK: - Interaction
 
     var dragGesture: some Gesture {
         DragGesture(minimumDistance: 8)
-            .updating($dragTranslation) { value, state, _ in
-                state = value.translation.height
+            .onChanged { dragTranslation = $0.translation.height }
+            .onEnded(finishDrag)
+    }
+
+    var expandedCollapseGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged {
+                guard expandedScrollOffset <= 1, $0.translation.height > .zero else { return }
+                dragTranslation = $0.translation.height
             }
             .onEnded { value in
-                let shouldExpand = value.predictedEndTranslation.height < -50
-                let shouldCollapse = value.predictedEndTranslation.height > 50
-                if shouldExpand { setDetent(.expanded) }
-                else if shouldCollapse { setDetent(.compact) }
+                guard expandedScrollOffset <= 1, value.translation.height > .zero else {
+                    setDetent(detent)
+                    return
+                }
+                finishDrag(value)
             }
     }
 
     func setDetent(_ newDetent: DenseDossierDetent) {
-        if reduceMotion {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.94)) {
             detent = newDetent
-        } else {
-            withAnimation(.snappy) {
-                detent = newDetent
-            }
+            dragTranslation = .zero
         }
     }
 
-    func formatUSD(_ amount: UInt64) -> String {
-        let value = Double(amount)
-        if value >= 1_000_000_000 {
-            return "~$" + (value / 1_000_000_000).formatted(.number.precision(.fractionLength(0...1))) + " млрд"
+    func toggleDetent() {
+        switch detent {
+        case .collapsed: setDetent(.compact)
+        case .compact: setDetent(.expanded)
+        case .expanded: setDetent(.compact)
         }
-        if value >= 1_000_000 {
-            return "~$" + (value / 1_000_000).formatted(.number.precision(.fractionLength(0...1))) + " млн"
+    }
+
+    func finishDrag(_ value: DragGesture.Value) {
+        let translation = value.translation.height
+        let predictedTranslation = value.predictedEndTranslation.height
+        if detent == .collapsed, translation > 90 {
+            dragTranslation = .zero
+            onClose()
+            return
         }
-        return "~$" + value.formatted(.number.notation(.compactName))
+
+        setDetent(detent.targetAfterDrag(translation: translation, predictedTranslation: predictedTranslation))
     }
 }

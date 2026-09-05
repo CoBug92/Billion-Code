@@ -15,6 +15,11 @@ enum AppSymbols {
     static let chevron = "chevron.right"
     static let contentUnavailable = "doc.questionmark"
     static let information = "info.circle"
+    static let institution = "building.columns.fill"
+    static let quote = "quote.opening"
+    static let sparkles = "sparkles"
+    static let wealth = "chart.line.uptrend.xyaxis"
     static let next = "chevron.right"
     static let previous = "chevron.left"
+    static let keyboardDismiss = "keyboard.chevron.compact.down"
 }

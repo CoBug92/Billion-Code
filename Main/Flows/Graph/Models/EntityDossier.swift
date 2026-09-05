@@ -4,6 +4,7 @@ struct EntityDossier: Equatable, Sendable {
     let entityID: GraphNode.ID
     let kind: GraphEntityKind
     let description: String
+    let operatingPeriod: String?
     let lastReviewedOn: String
     let facts: [DossierFact]
     let links: [DossierEntityLink]

@@ -59,6 +59,32 @@ public enum L10n {
         public static let action = L10n.tr("Localizable", "graph.chapter.previous.action", fallback: "Предыдущая глава")
       }
     }
+    public enum Dossier {
+      /// Вид деятельности
+      public static let activity = L10n.tr("Localizable", "graph.dossier.activity", fallback: "Вид деятельности")
+      /// Выпускники
+      public static let alumni = L10n.tr("Localizable", "graph.dossier.alumni", fallback: "Выпускники")
+      /// Закрыть
+      public static let close = L10n.tr("Localizable", "graph.dossier.close", fallback: "Закрыть")
+      /// Соучредители
+      public static let cofounders = L10n.tr("Localizable", "graph.dossier.cofounders", fallback: "Соучредители")
+      /// Текущие компании
+      public static let currentCompanies = L10n.tr("Localizable", "graph.dossier.current_companies", fallback: "Текущие компании")
+      /// Образование
+      public static let education = L10n.tr("Localizable", "graph.dossier.education", fallback: "Образование")
+      /// Открыть в графе: %@
+      public static func openNode(_ p1: Any) -> String {
+        return L10n.tr("Localizable", "graph.dossier.open_node", String(describing: p1), fallback: "Открыть в графе: %@")
+      }
+      /// Прошлые компании
+      public static let pastCompanies = L10n.tr("Localizable", "graph.dossier.past_companies", fallback: "Прошлые компании")
+      /// Люди и программы
+      public static let peopleAndPrograms = L10n.tr("Localizable", "graph.dossier.people_and_programs", fallback: "Люди и программы")
+      /// Связанные люди
+      public static let relatedPeople = L10n.tr("Localizable", "graph.dossier.related_people", fallback: "Связанные люди")
+      /// Тип
+      public static let type = L10n.tr("Localizable", "graph.dossier.type", fallback: "Тип")
+    }
     public enum Entity {
       /// Сделка
       public static let deal = L10n.tr("Localizable", "graph.entity.deal", fallback: "Сделка")
@@ -180,6 +206,12 @@ public enum L10n {
         /// Источники расходятся в трактовке роли участников.
         public static let disputed = L10n.tr("Localizable", "graph.fixture.relationship.disputed", fallback: "Источники расходятся в трактовке роли участников.")
       }
+    }
+    public enum Focus {
+      /// Собрать локальный граф
+      public static let local = L10n.tr("Localizable", "graph.focus.local", fallback: "Собрать локальный граф")
+      /// Показать весь граф
+      public static let showAll = L10n.tr("Localizable", "graph.focus.show_all", fallback: "Показать весь граф")
     }
     public enum Node {
       /// Выбрать узел и показать его связи

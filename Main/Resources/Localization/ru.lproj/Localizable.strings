@@ -27,6 +27,17 @@
 "graph.relationship.sources.title" = "Источники";
 "graph.panel.expand" = "Развернуть";
 "graph.panel.collapse" = "Свернуть";
+"graph.dossier.current_companies" = "Текущие компании";
+"graph.dossier.close" = "Закрыть";
+"graph.dossier.past_companies" = "Прошлые компании";
+"graph.dossier.education" = "Образование";
+"graph.dossier.activity" = "Вид деятельности";
+"graph.dossier.cofounders" = "Соучредители";
+"graph.dossier.related_people" = "Связанные люди";
+"graph.dossier.open_node" = "Открыть в графе: %@";
+"graph.dossier.alumni" = "Выпускники";
+"graph.dossier.people_and_programs" = "Люди и программы";
+"graph.dossier.type" = "Тип";
 "graph.chapter.previous" = "Предыдущая глава: %@";
 "graph.chapter.next" = "Следующая глава: %@";
 "graph.chapter.previous.action" = "Предыдущая глава";
@@ -51,6 +62,8 @@
 "graph.entity.event" = "Событие";
 "graph.spike.caption" = "Технический граф: 40 узлов и 80 связей";
 "graph.featured.summary" = "Редакционный выпуск · граф связей";
+"graph.focus.local" = "Собрать локальный граф";
+"graph.focus.show_all" = "Показать весь граф";
 "content.loading" = "Загружаем выпуск";
 "content.error.title" = "Выпуск недоступен";
 "content.error.message" = "Bundled seed не прошёл проверку. Переустановите приложение или соберите проект заново.";

@@ -3,7 +3,7 @@ import SwiftUI
 struct DossierPanelHeader: View {
     let node: GraphNode
     let eyebrowText: String?
-    let personMetadata: String?
+    let metadataText: String?
     let detent: DenseDossierDetent
     let canNavigateBack: Bool
     let onBack: () -> Void
@@ -30,8 +30,8 @@ struct DossierPanelHeader: View {
                         .font(node.kind == .person ? .title.bold() : .title2.bold())
                         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
                         .lineLimit(2)
-                    if let personMetadata {
-                        Text(personMetadata)
+                    if let metadataText {
+                        Text(metadataText)
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -79,11 +79,11 @@ struct DossierPanelHeader: View {
 
     private var toggleButton: some View {
         Button(action: onToggle) {
-            Image(systemName: detent == .compact ? "chevron.up" : "chevron.down")
+            Image(systemName: detent == .expanded ? "chevron.down" : "chevron.up")
                 .frame(width: 44, height: 44)
                 .background(.secondary.opacity(0.12), in: Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(detent == .compact ? "Развернуть досье" : "Свернуть досье")
+        .accessibilityLabel(detent == .expanded ? "Свернуть досье" : "Развернуть досье")
     }
 }

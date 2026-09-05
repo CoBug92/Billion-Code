@@ -27,6 +27,31 @@ struct GraphCameraTests {
         #expect(worldPoint == GraphPoint(x: 4_200, y: 6_100))
     }
 
+    @Test("Pan supports bounds outside the global world")
+    func panUsesProvidedBounds() {
+        var camera = GraphCamera(center: GraphPoint(x: 5_000, y: 5_000), scale: 0.1)
+
+        camera.pan(
+            by: CGSize(width: 10_000, height: -10_000),
+            horizontalRange: -2_000 ... 12_000,
+            verticalRange: -3_000 ... 13_000
+        )
+
+        #expect(camera.center == GraphPoint(x: -2_000, y: 13_000))
+    }
+
+    @Test("Recenter can place a world point at a requested screen point")
+    func recenterAtScreenPoint() {
+        let worldPoint = GraphPoint(x: 5_400, y: 5_800)
+        let viewport = CGSize(width: 390, height: 800)
+        let screenPoint = CGPoint(x: 195, y: 220)
+        var camera = GraphCamera(center: GraphPoint(x: 5_000, y: 5_000), scale: 0.1)
+
+        camera.recenter(on: worldPoint, at: screenPoint, viewport: viewport)
+
+        #expect(camera.screenPoint(for: worldPoint, viewport: viewport) == screenPoint)
+    }
+
     @Test("Zoom is clamped to the supported spike range")
     func zoomRange() {
         var camera = GraphCamera(center: GraphPoint(x: 5_000, y: 5_000))

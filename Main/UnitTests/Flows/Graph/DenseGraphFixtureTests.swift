@@ -68,6 +68,21 @@ struct DenseGraphFixtureTests {
         }
     }
 
+    @Test("University dossiers expose an operating period and unique alumni")
+    func universityPresentationData() {
+        let graph = DenseGraphFixture.performance
+
+        for university in graph.nodes where university.kind == .university {
+            let dossier = graph.dossier(id: university.id)
+            let alumniIDs = dossier?.links.compactMap(\.entityID) ?? []
+
+            #expect(dossier?.operatingPeriod?.isEmpty == false)
+            #expect(Set(alumniIDs).count == alumniIDs.count)
+            #expect(dossier?.facts.contains { $0.id.hasSuffix(":people") } == false)
+            #expect(dossier?.facts.contains { $0.id.hasSuffix(":founded") } == false)
+        }
+    }
+
     @Test("Dossier links are current-first and point to graph nodes")
     func dossierLinks() {
         let graph = DenseGraphFixture.performance
@@ -80,6 +95,26 @@ struct DenseGraphFixtureTests {
             }
             let currentCount = dossier.sortedLinks.prefix { $0.isCurrent }.count
             #expect(dossier.sortedLinks.dropFirst(currentCount).allSatisfy { !$0.isCurrent })
+        }
+    }
+
+    @Test("Featured company dossiers expose operating years and editorial highlights")
+    func featuredCompanyDetails() {
+        let graph = DenseGraphFixture.performance
+        let expectedHighlights = [
+            "organization:tesla",
+            "organization:openai",
+            "organization:microsoft",
+            "organization:meta",
+            "organization:credit-suisse"
+        ]
+
+        #expect(graph.dossier(id: "organization:tesla")?.operatingPeriod == "2003–н.в.")
+        #expect(graph.dossier(id: "organization:credit-suisse")?.operatingPeriod == "1856–2023")
+        for organizationID in expectedHighlights {
+            let highlights = OrganizationDossierHighlights.events[organizationID]
+            #expect(highlights?.isEmpty == false)
+            #expect(highlights?.allSatisfy { $0.source != nil } == true)
         }
     }
 }

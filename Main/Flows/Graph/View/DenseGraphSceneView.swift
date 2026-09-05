@@ -8,53 +8,67 @@ struct DenseGraphSceneView: View {
     @State private var magnifyStartCamera: GraphCamera?
     @State private var searchText = ""
     @State private var suppressNodeSelection = false
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         GeometryReader { geometry in
+            let renderFrame = viewModel.renderFrame(in: geometry.size)
             ZStack {
-                background
-                edgeCanvas(viewport: geometry.size)
+                ZStack {
+                    background
+                    edgeCanvas(edges: renderFrame.edges, viewport: geometry.size)
 
-                ForEach(viewModel.visibleNodes(in: geometry.size)) { node in
-                    DenseGraphNodeView(
-                        node: node,
-                        isSelected: viewModel.selectedNodeID == node.id,
-                        isHighlighted: viewModel.isHighlighted(nodeID: node.id),
-                        showsLabel: viewModel.shouldShowLabel(for: node)
-                    ) {
-                        select(node: node)
+                    ForEach(renderFrame.nodes) { node in
+                        DenseGraphNodeView(
+                            node: node,
+                            isSelected: viewModel.selectedNodeID == node.id,
+                            isHighlighted: viewModel.isHighlighted(nodeID: node.id),
+                            showsLabel: viewModel.shouldShowLabel(for: node)
+                        ) {
+                            select(node: node)
+                        }
+                        .position(
+                            viewModel.camera.screenPoint(
+                                for: viewModel.displayPosition(for: node),
+                                viewport: geometry.size
+                            )
+                        )
                     }
-                    .position(viewModel.camera.screenPoint(for: node.position, viewport: geometry.size))
                 }
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .simultaneousGesture(panGesture)
+                .simultaneousGesture(magnificationGesture)
 
                 controls
-            }
-            .contentShape(Rectangle())
-            .simultaneousGesture(panGesture)
-            .simultaneousGesture(magnificationGesture)
-            .accessibilityAction(named: "Сбросить масштаб") {
-                resetCamera()
+                    .zIndex(1)
             }
         }
-        .ignoresSafeArea()
     }
 }
 
 // MARK: - Canvas
 
 private extension DenseGraphSceneView {
-    func edgeCanvas(viewport: CGSize) -> some View {
+    func edgeCanvas(edges: [DenseGraphEdge], viewport: CGSize) -> some View {
         Canvas(rendersAsynchronously: true) { context, _ in
-            for edge in viewModel.graph.edges {
-                guard viewModel.isEdgeVisible(edge) else { continue }
+            for edge in edges {
                 guard
-                    let source = viewModel.graph.node(id: edge.sourceID),
-                    let target = viewModel.graph.node(id: edge.targetID)
+                    let source = viewModel.node(id: edge.sourceID),
+                    let target = viewModel.node(id: edge.targetID)
                 else { continue }
 
-                let sourcePoint = viewModel.camera.screenPoint(for: source.position, viewport: viewport)
-                let targetPoint = viewModel.camera.screenPoint(for: target.position, viewport: viewport)
-                guard edgeIsVisible(source: sourcePoint, target: targetPoint, viewport: viewport) else { continue }
+                let sourcePoint = viewModel.camera.screenPoint(
+                    for: viewModel.displayPosition(for: source),
+                    viewport: viewport
+                )
+                let targetPoint = viewModel.camera.screenPoint(
+                    for: viewModel.displayPosition(for: target),
+                    viewport: viewport
+                )
+                guard viewModel.isLocalFocusActive
+                    || edgeIsVisible(source: sourcePoint, target: targetPoint, viewport: viewport)
+                else { continue }
 
                 let isHighlighted = viewModel.isHighlighted(edgeID: edge.id)
                 let opacity = edgeOpacity(isHighlighted: isHighlighted)
@@ -140,6 +154,7 @@ private extension DenseGraphSceneView {
             )
         }
         .onTapGesture {
+            dismissSearch()
             withAnimation(selectionAnimation) {
                 viewModel.clearSelection()
             }
@@ -147,24 +162,19 @@ private extension DenseGraphSceneView {
     }
 
     var controls: some View {
-        VStack {
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 8) {
-                    search
-                    filters
+        VStack(alignment: .leading, spacing: 8) {
+            search
+            filters
+            if viewModel.hasSelection {
+                DenseGraphFocusButton(isActive: viewModel.isLocalFocusActive) {
+                    withAnimation(reduceMotion ? nil : .smooth(duration: .localFocusAnimationDuration)) {
+                        viewModel.toggleLocalFocus()
+                    }
                 }
-                Spacer()
-                Button(action: resetCamera) {
-                    Image(systemName: "scope")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                        .frame(width: 44, height: 44)
-                        .background(.ultraThinMaterial, in: Circle())
-                }
-                .accessibilityLabel("Показать весь граф")
             }
             Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
         .padding(.top, 12)
     }
@@ -177,6 +187,9 @@ private extension DenseGraphSceneView {
                 TextField("Поиск", text: $searchText)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .focused($isSearchFocused)
+                    .submitLabel(.done)
+                    .onSubmit(dismissSearch)
                 if !searchText.isEmpty {
                     Button {
                         searchText = ""
@@ -187,51 +200,62 @@ private extension DenseGraphSceneView {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Очистить поиск")
                 }
+                if isSearchFocused {
+                    Button(action: dismissSearch) {
+                        Image(systemName: AppSymbols.keyboardDismiss)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Скрыть клавиатуру")
+                }
             }
             .padding(.horizontal, 12)
-            .frame(width: 230, height: 44)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
 
-            let results = viewModel.searchResults(matching: searchText)
-            if !results.isEmpty {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(results) { node in
-                        Button {
-                            searchText = ""
-                            viewModel.selectNode(id: node.id)
-                            viewModel.focus(on: node.id)
-                        } label: {
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(node.kind.denseGraphColor)
-                                    .frame(width: 8, height: 8)
-                                Text(node.name)
-                                    .font(.subheadline)
-                                    .lineLimit(1)
-                                Spacer(minLength: 0)
+            if isSearchFocused {
+                let results = viewModel.searchResults(matching: searchText)
+                if !results.isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(results) { node in
+                            Button {
+                                selectSearchResult(node)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(node.kind.denseGraphColor)
+                                        .frame(width: 8, height: 8)
+                                    Text(node.name)
+                                        .font(.subheadline)
+                                        .lineLimit(1)
+                                    Spacer(minLength: 0)
+                                }
+                                .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                                .padding(.horizontal, 12)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 38)
+                                .contentShape(Rectangle())
                             }
-                            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                            .padding(.horizontal, 12)
-                            .frame(width: 230, height: 38)
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
                 }
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
             }
         }
     }
 
     var filters: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 6) {
             filterButton(kind: .person, title: "Люди", shape: .circle)
             filterButton(kind: .organization, title: "Компании", shape: .diamond)
             filterButton(kind: .university, title: "Вузы", shape: .triangle)
         }
         .font(.caption2)
         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor.opacity(0.82))
-        .padding(.horizontal, 11)
+        .padding(.horizontal, 8)
+        .frame(width: 230)
         .frame(minHeight: 44)
         .background(.ultraThinMaterial, in: Capsule())
     }
@@ -247,12 +271,17 @@ private extension DenseGraphSceneView {
                 shape.view(color: kind.denseGraphColor)
                     .frame(width: 8, height: 8)
                 Text(title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+                    .allowsTightening(true)
             }
+            .frame(maxWidth: .infinity)
             .opacity(isVisible ? 1 : 0.35)
         }
         .buttonStyle(.plain)
         .accessibilityValue(isVisible ? "Показано" : "Скрыто")
     }
+
 }
 
 // MARK: - Gestures
@@ -261,15 +290,16 @@ private extension DenseGraphSceneView {
     var panGesture: some Gesture {
         DragGesture(minimumDistance: 6)
             .onChanged { value in
+                suppressNodeSelection = true
                 if dragStartCamera == nil {
                     dragStartCamera = viewModel.camera
                 }
-                guard var camera = dragStartCamera else { return }
-                camera.pan(by: value.translation)
-                viewModel.updateCamera(camera)
+                guard let camera = dragStartCamera else { return }
+                viewModel.panCamera(from: camera, by: value.translation)
             }
             .onEnded { _ in
                 dragStartCamera = nil
+                releaseNodeSelectionAfterGesture()
             }
     }
 
@@ -286,10 +316,7 @@ private extension DenseGraphSceneView {
             }
             .onEnded { _ in
                 magnifyStartCamera = nil
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(150))
-                    suppressNodeSelection = false
-                }
+                releaseNodeSelectionAfterGesture()
             }
     }
 }
@@ -309,10 +336,25 @@ private extension DenseGraphSceneView {
         }
     }
 
-    func resetCamera() {
-        withAnimation(reduceMotion ? nil : .smooth(duration: 0.35)) {
-            viewModel.resetCamera()
+    func releaseNodeSelectionAfterGesture() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            suppressNodeSelection = false
         }
+    }
+
+    func selectSearchResult(_ node: GraphNode) {
+        dismissSearch()
+        withAnimation(reduceMotion ? nil : .smooth(duration: .graphNavigationAnimationDuration)) {
+            if viewModel.selectedNodeID != node.id {
+                viewModel.selectNode(id: node.id)
+            }
+            viewModel.focus(on: node.id)
+        }
+    }
+
+    func dismissSearch() {
+        isSearchFocused = false
     }
 }
 
@@ -333,6 +375,15 @@ private enum DenseLegendShape {
         }
     }
 }
+
+// MARK: - Constants
+
+private extension Double {
+    static let graphNavigationAnimationDuration = 0.45
+    static let localFocusAnimationDuration = 0.55
+}
+
+// MARK: - Preview
 
 #Preview("Dense graph") {
     DenseGraphSceneView(

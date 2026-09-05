@@ -1,14 +1,14 @@
 import SwiftUI
 
+// MARK: - Person dossier
+
 struct CompactWealthCard: View {
-    let wealth: DossierWealth
     let formattedAmount: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("СОСТОЯНИЕ").font(.caption2.bold()).tracking(1).foregroundStyle(blue)
             Text(formattedAmount).font(.system(.title2, design: .rounded, weight: .bold))
-            Text("на \(wealth.asOf)").font(.caption2).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 11)
@@ -33,17 +33,51 @@ struct CompactPersonCloudGroups: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 13) {
-            cloudGroup(title: "Компании", tint: amber) {
-                ForEach(companies) { company in
-                    companyButton(company)
+            if !currentCompanies.isEmpty {
+                cloudGroup(
+                    title: L10n.Graph.Dossier.currentCompanies,
+                    tint: amber
+                ) {
+                    ForEach(currentCompanies) { company in
+                        companyButton(
+                            company,
+                            tint: amber
+                        )
+                    }
                 }
             }
-            cloudGroup(title: "Вузы", tint: purple) {
-                ForEach(universities) { university in
-                    universityButton(university)
+            if !pastCompanies.isEmpty {
+                cloudGroup(
+                    title: L10n.Graph.Dossier.pastCompanies,
+                    tint: pastCompanyTint
+                ) {
+                    ForEach(pastCompanies) { company in
+                        companyButton(
+                            company,
+                            tint: pastCompanyTint
+                        )
+                    }
+                }
+            }
+            if !universities.isEmpty {
+                cloudGroup(
+                    title: L10n.Graph.Dossier.education,
+                    tint: purple
+                ) {
+                    ForEach(universities) { university in
+                        universityButton(university)
+                    }
                 }
             }
         }
+    }
+
+    private var currentCompanies: [DossierEntityLink] {
+        companies.filter(\.isCurrent)
+    }
+
+    private var pastCompanies: [DossierEntityLink] {
+        companies.filter { !$0.isCurrent }
     }
 
     private func cloudGroup<Content: View>(
@@ -62,22 +96,18 @@ struct CompactPersonCloudGroups: View {
         }
     }
 
-    private func companyButton(_ company: DossierEntityLink) -> some View {
+    private func companyButton(_ company: DossierEntityLink, tint: Color) -> some View {
         Button {
             if let entityID = company.entityID { onNavigate(entityID) }
         } label: {
-            HStack(spacing: 5) {
-                Circle()
-                    .fill(company.isCurrent ? Color.green : Color.secondary.opacity(0.55))
-                    .frame(width: 6, height: 6)
-                Text(company.name).lineLimit(1)
-            }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-            .padding(.horizontal, 10)
-            .frame(height: 34)
-            .background(amber.opacity(0.11), in: Capsule())
-            .overlay(Capsule().stroke(amber.opacity(0.18)))
+            Text(company.name)
+                .lineLimit(1)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                .padding(.horizontal, 10)
+                .frame(height: 34)
+                .background(tint.opacity(0.11), in: Capsule())
+                .overlay(Capsule().stroke(tint.opacity(0.18)))
         }
         .buttonStyle(.plain)
         .disabled(company.entityID == nil)
@@ -106,16 +136,22 @@ struct CompactPersonCloudGroups: View {
 
     private var purple: Color { Asset.Colors.chapterViolet.swiftUIColor }
     private var amber: Color { Asset.Colors.chapterAmber.swiftUIColor }
+    private var pastCompanyTint: Color { .secondary }
 }
+
+// MARK: - Organization dossier
 
 struct CompactOrganizationCloud: View {
     let activity: String
-    let founders: [DossierEntityLink]
-    let onNavigate: (GraphNode.ID) -> Void
+    let title: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(activity, systemImage: "sparkles")
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title.uppercased())
+                .font(.caption2.bold())
+                .tracking(0.9)
+                .foregroundStyle(Asset.Colors.chapterAmber.swiftUIColor)
+            Label(activity, systemImage: AppSymbols.sparkles)
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 11)
@@ -129,34 +165,59 @@ struct CompactOrganizationCloud: View {
                         topTrailingRadius: 12
                     )
                 )
+        }
+    }
+}
+
+struct OrganizationPeopleClouds: View {
+    let founders: [DossierEntityLink]
+    let relatedPeople: [DossierEntityLink]
+    let onNavigate: (GraphNode.ID) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 13) {
             if !founders.isEmpty {
-                cloudLabel("Соучредители", links: founders)
+                cloudGroup(title: L10n.Graph.Dossier.cofounders, links: founders)
+            }
+            if !relatedPeople.isEmpty {
+                cloudGroup(title: L10n.Graph.Dossier.relatedPeople, links: relatedPeople)
             }
         }
     }
 
-    private func cloudLabel(_ title: String, links: [DossierEntityLink]) -> some View {
+    private func cloudGroup(title: String, links: [DossierEntityLink]) -> some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text(title.uppercased()).font(.caption2.bold()).tracking(0.8)
+            Text(title.uppercased())
+                .font(.caption2.bold())
+                .tracking(0.9)
+                .foregroundStyle(blue)
+                .padding(.leading, 3)
             FlowLayout(spacing: 7) {
                 ForEach(links) { link in
-                    Button(link.name) {
-                        if let entityID = link.entityID { onNavigate(entityID) }
-                    }
-                    .font(.caption.bold())
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 10)
-                    .frame(height: 31)
-                    .background(.white.opacity(0.52), in: Capsule())
+                    personButton(link)
                 }
             }
         }
-        .foregroundStyle(Asset.Colors.chapterBlue.swiftUIColor)
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Asset.Colors.chapterBlue.swiftUIColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 24))
     }
+
+    private func personButton(_ link: DossierEntityLink) -> some View {
+        Button(link.name) {
+            if let entityID = link.entityID { onNavigate(entityID) }
+        }
+        .font(.caption.bold())
+        .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 11)
+        .frame(height: 34)
+        .background(blue.opacity(0.16), in: Capsule())
+        .overlay(Capsule().stroke(blue.opacity(0.24)))
+        .disabled(link.entityID == nil)
+    }
+
+    private var blue: Color { Asset.Colors.chapterBlue.swiftUIColor }
 }
+
+// MARK: - University dossier
 
 struct CompactUniversityCloud: View {
     let type: String
@@ -182,7 +243,7 @@ struct CompactUniversityCloud: View {
                 .background(purple.opacity(0.18), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
         case .orbit:
             HStack(spacing: 12) {
-                Image(systemName: "building.columns.fill")
+                Image(systemName: AppSymbols.institution)
                     .font(.title2)
                     .frame(width: 52, height: 52)
                     .background(.white.opacity(0.5), in: Circle())
@@ -211,25 +272,82 @@ struct CompactUniversityCloud: View {
 
     private var alumniBubble: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text("ВЫПУСКНИКИ В ГРАФЕ").font(.caption2.bold()).tracking(0.8)
-            FlowLayout(spacing: 7) {
-                ForEach(alumni.prefix(4)) { link in
-                    Button(link.name) {
-                        if let entityID = link.entityID { onNavigate(entityID) }
-                    }
-                    .font(.caption.bold()).buttonStyle(.plain)
-                    .padding(.horizontal, 10).frame(height: 31)
-                    .background(.white.opacity(0.52), in: Capsule())
-                }
+            Text(L10n.Graph.Dossier.alumni.uppercased())
+                .font(.caption2.bold())
+                .tracking(0.8)
+                .foregroundStyle(blue)
+            ScrollView(.horizontal, showsIndicators: false) {
+                UniversityPeopleClouds(
+                    people: alumni,
+                    showsStudyPeriod: true,
+                    usesHorizontalLayout: true,
+                    onNavigate: onNavigate
+                )
             }
         }
-        .foregroundStyle(Asset.Colors.chapterBlue.swiftUIColor)
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Asset.Colors.chapterBlue.swiftUIColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 24))
     }
 
     private var purple: Color { Asset.Colors.chapterViolet.swiftUIColor }
+    private var blue: Color { Asset.Colors.chapterBlue.swiftUIColor }
+}
+
+struct UniversityPeopleClouds: View {
+
+    // MARK: - Properties
+
+    let people: [DossierEntityLink]
+    let showsStudyPeriod: Bool
+    let usesHorizontalLayout: Bool
+    let onNavigate: (GraphNode.ID) -> Void
+
+    // MARK: - Layout
+
+    @ViewBuilder
+    var body: some View {
+        if usesHorizontalLayout {
+            HStack(spacing: 7) {
+                peopleButtons
+            }
+        } else {
+            FlowLayout(spacing: 7) {
+                peopleButtons
+            }
+        }
+    }
+
+    // MARK: - Private methods
+
+    private var peopleButtons: some View {
+        ForEach(people) { person in
+            personButton(person)
+        }
+    }
+
+    private func personButton(_ person: DossierEntityLink) -> some View {
+        Button {
+            if let entityID = person.entityID { onNavigate(entityID) }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(person.name)
+                    .font(.caption.bold())
+                    .lineLimit(1)
+                if showsStudyPeriod {
+                    Text(person.period)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+            .padding(.horizontal, 11)
+            .padding(.vertical, showsStudyPeriod ? 8 : 9)
+            .background(blue.opacity(0.16), in: Capsule())
+            .overlay(Capsule().stroke(blue.opacity(0.28)))
+        }
+        .buttonStyle(.plain)
+        .disabled(person.entityID == nil)
+    }
+
+    private var blue: Color { Asset.Colors.chapterBlue.swiftUIColor }
 }
 
 enum UniversityCloudVariant: Int, CaseIterable {
@@ -237,6 +355,8 @@ enum UniversityCloudVariant: Int, CaseIterable {
     case orbit
     case stacked
 }
+
+// MARK: - Flow layout
 
 struct FlowLayout: Layout {
     let spacing: CGFloat

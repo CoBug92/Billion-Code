@@ -83,6 +83,7 @@ private extension DenseGraphDossierFactory {
             entityID: node.id,
             kind: node.kind,
             description: description,
+            operatingPeriod: nil,
             lastReviewedOn: "04.09.2026",
             facts: facts,
             links: work,
@@ -117,10 +118,11 @@ private extension DenseGraphDossierFactory {
             entityID: node.id,
             kind: node.kind,
             description: "\(node.name) — \(activity.lowercased()). Ниже — основатели, руководители и ключевые связи.",
+            operatingPeriod: OrganizationDossierHighlights.operatingPeriods[node.id],
             lastReviewedOn: "04.09.2026",
             facts: facts,
             links: links,
-            timeline: timeline(from: links),
+            timeline: organizationTimeline(for: node.id, links: links),
             wealth: nil,
             personDetails: nil,
             education: []
@@ -128,24 +130,41 @@ private extension DenseGraphDossierFactory {
     }
 
     static func universityDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
-        let metadata = universityMetadata[node.id] ?? ("Исследовательский университет", "США", "—")
+        let metadata = universityMetadata[node.id] ?? (
+            type: "Исследовательский университет",
+            location: "США",
+            operatingPeriod: "—"
+        )
+        let alumni = uniquePeople(in: links)
         return EntityDossier(
             entityID: node.id,
             kind: node.kind,
             description: "\(node.name) — образовательная организация. Здесь собраны программы и периоды обучения людей из текущего графа.",
+            operatingPeriod: universityOperatingPeriod(from: metadata.operatingPeriod),
             lastReviewedOn: "04.09.2026",
             facts: [
-                DossierFact(id: "\(node.id):type", label: "Тип", value: metadata.0, source: nil),
-                DossierFact(id: "\(node.id):location", label: "Местоположение", value: metadata.1, source: nil),
-                DossierFact(id: "\(node.id):founded", label: "Основан", value: metadata.2, source: nil),
-                DossierFact(id: "\(node.id):people", label: "Выпускники в графе", value: String(links.count), source: nil)
+                DossierFact(id: "\(node.id):type", label: "Тип", value: metadata.type, source: nil),
+                DossierFact(id: "\(node.id):location", label: "Местоположение", value: metadata.location, source: nil)
             ],
-            links: links,
-            timeline: timeline(from: links),
+            links: alumni,
+            timeline: timeline(from: alumni),
             wealth: nil,
             personDetails: nil,
             education: []
         )
+    }
+
+    static func uniquePeople(in links: [DossierEntityLink]) -> [DossierEntityLink] {
+        var seenEntityIDs = Set<GraphNode.ID>()
+        return links.filter { link in
+            guard let entityID = link.entityID else { return true }
+            return seenEntityIDs.insert(entityID).inserted
+        }
+    }
+
+    static func universityOperatingPeriod(from foundationYear: String) -> String {
+        guard foundationYear != "—", !foundationYear.contains("–") else { return foundationYear }
+        return "\(foundationYear)–н.в."
     }
 
     static func genericDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
@@ -153,6 +172,7 @@ private extension DenseGraphDossierFactory {
             entityID: node.id,
             kind: node.kind,
             description: node.summary.isEmpty ? "Сущность текущего доказательного графа." : node.summary,
+            operatingPeriod: nil,
             lastReviewedOn: "04.09.2026",
             facts: [],
             links: links,
@@ -176,6 +196,17 @@ private extension DenseGraphDossierFactory {
                     linkedEntityID: $0.entityID,
                     source: $0.source
                 )
+            }
+    }
+
+    static func organizationTimeline(
+        for organizationID: GraphNode.ID,
+        links: [DossierEntityLink]
+    ) -> [DossierTimelineEvent] {
+        (timeline(from: links) + (OrganizationDossierHighlights.events[organizationID] ?? []))
+            .sorted {
+                if $0.year != $1.year { return $0.year < $1.year }
+                return $0.id < $1.id
             }
     }
 
@@ -319,7 +350,7 @@ private extension DenseGraphDossierFactory {
         "organization:stripe": 2010, "organization:neuralink": 2016, "organization:xai": 2023
     ]
 
-    static let universityMetadata: [String: (String, String, String)] = [
+    static let universityMetadata: [String: (type: String, location: String, operatingPeriod: String)] = [
         "university:auckland": ("Публичный исследовательский университет", "Окленд, Новая Зеландия", "1883"),
         "university:berkeley": ("Публичный исследовательский университет", "Беркли, Калифорния, США", "1868"),
         "university:booth": ("Бизнес-школа", "Чикаго, Иллинойс, США", "1898"),
