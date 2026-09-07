@@ -386,6 +386,121 @@ private extension DenseGraphFixture {
                 .work("lsi", "LSI Logic", "1985–1993", "директор"),
                 .work("nvidia", "NVIDIA", "1993–н.в.", "сооснователь / CEO")
             ]
+        ),
+        DenseGraphProfile(
+            id: "person:steve-jobs",
+            name: "Стив Джобс",
+            affiliations: [
+                .study("reed", "Reed College", "1972–1974", "гуманитарные курсы · не окончил"),
+                .work("atari", "Atari", "1974–1975", "техник"),
+                .work("apple", "Apple", "1976–2011", "сооснователь / CEO"),
+                .work("next", "NeXT", "1985–1997", "основатель / CEO"),
+                .work("pixar", "Pixar", "1986–2006", "председатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:tim-cook",
+            name: "Тим Кук",
+            affiliations: [
+                .study("auburn", "Auburn University", "1978–1982", "BS, промышленная инженерия"),
+                .study("duke", "Duke University", "1986–1988", "MBA"),
+                .work("ibm", "IBM", "1982–1994", "директор производства"),
+                .work("compaq", "Compaq", "1997–1998", "VP"),
+                .work("apple", "Apple", "1998–н.в.", "CEO с 2011")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:larry-ellison",
+            name: "Ларри Эллисон",
+            affiliations: [
+                .study("uiuc", "University of Illinois", "1962–1964", "естественные науки · не окончил"),
+                .study("chicago", "University of Chicago", "1966", "физика / математика · не окончил"),
+                .work("ampex", "Ampex", "1973–1977", "программист"),
+                .work("oracle", "Oracle", "1977–н.в.", "сооснователь / CTO / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:marc-benioff",
+            name: "Марк Бениофф",
+            affiliations: [
+                .study("usc", "University of Southern California", "1982–1986", "BS, бизнес-администрирование"),
+                .work("apple", "Apple", "1984–1986", "стажёр"),
+                .work("oracle", "Oracle", "1986–1999", "VP"),
+                .work("salesforce", "Salesforce", "1999–н.в.", "основатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:patrick-collison",
+            name: "Патрик Коллисон",
+            affiliations: [
+                .study("mit", "MIT", "2006–2007", "информатика · не окончил"),
+                .work("auctomatic", "Auctomatic", "2007–2008", "сооснователь"),
+                .work("stripe", "Stripe", "2010–н.в.", "сооснователь / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:john-collison",
+            name: "Джон Коллисон",
+            affiliations: [
+                .study("harvard", "Harvard University", "2009–2010", "физика · не окончил"),
+                .work("auctomatic", "Auctomatic", "2007–2008", "сооснователь"),
+                .work("stripe", "Stripe", "2010–н.в.", "сооснователь / президент")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:jack-dorsey",
+            name: "Джек Дорси",
+            affiliations: [
+                .study("mst", "Missouri S&T", "1995–1997", "информатика"),
+                .study("nyu", "New York University", "1997–1999", "информатика · не окончил"),
+                .work("twitter", "Twitter", "2006–2021", "сооснователь / CEO"),
+                .work("block", "Block", "2009–н.в.", "сооснователь / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:evan-spiegel",
+            name: "Эван Шпигель",
+            affiliations: [
+                .study("stanford", "Stanford University", "2008–2012", "product design"),
+                .work("snap", "Snap", "2011–н.в.", "сооснователь / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:bobby-murphy",
+            name: "Бобби Мёрфи",
+            affiliations: [
+                .study("stanford", "Stanford University", "2008–2010", "математические и вычислительные науки"),
+                .work("snap", "Snap", "2011–н.в.", "сооснователь / CTO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:brian-chesky",
+            name: "Брайан Чески",
+            affiliations: [
+                .study("risd", "Rhode Island School of Design", "1999–2004", "BFA, промышленный дизайн"),
+                .work("airbnb", "Airbnb", "2008–н.в.", "сооснователь / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:travis-kalanick",
+            name: "Трэвис Каланик",
+            affiliations: [
+                .study("ucla", "UCLA", "1994–1998", "компьютерная инженерия · не окончил"),
+                .work("scour", "Scour", "1997–2000", "сооснователь"),
+                .work("red-swoosh", "Red Swoosh", "2001–2007", "сооснователь"),
+                .work("uber", "Uber", "2009–2017", "сооснователь / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:dara-khosrowshahi",
+            name: "Дара Хосровшахи",
+            affiliations: [
+                .study("brown", "Brown University", "1987–1991", "BS, электротехника"),
+                .work("allen-company", "Allen & Company", "1991–1998", "аналитик"),
+                .work("iac", "IAC", "1998–2005", "CFO"),
+                .work("expedia", "Expedia", "2005–2017", "CEO"),
+                .work("uber", "Uber", "2017–н.в.", "CEO")
+            ]
         )
     ]
 }

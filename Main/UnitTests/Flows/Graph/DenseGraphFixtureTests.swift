@@ -3,12 +3,12 @@ import Testing
 
 @Suite("Dense native graph fixture")
 struct DenseGraphFixtureTests {
-    @Test("Fixture contains 26 people and a dense affiliation network")
+    @Test("Fixture contains 38 people and a dense affiliation network")
     func expectedScale() {
         let graph = DenseGraphFixture.performance
         let people = graph.nodes.filter { $0.kind == .person }
 
-        #expect(people.count == 26)
+        #expect(people.count == 38)
         #expect(graph.nodes.count >= 90)
         #expect(graph.edges.count >= 100)
     }

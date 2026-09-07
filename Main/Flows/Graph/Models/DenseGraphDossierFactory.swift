@@ -224,13 +224,22 @@ private extension DenseGraphDossierFactory {
             "person:mark-zuckerberg": 209_900_000_000, "person:dustin-moskovitz": 10_300_000_000,
             "person:sheryl-sandberg": 2_400_000_000, "person:bill-gates": 111_300_000_000,
             "person:steve-ballmer": 152_600_000_000, "person:satya-nadella": 1_400_000_000,
-            "person:jeff-bezos": 267_600_000_000, "person:jensen-huang": 197_200_000_000
+            "person:jeff-bezos": 267_600_000_000, "person:jensen-huang": 197_200_000_000,
+            "person:steve-jobs": 10_200_000_000, "person:tim-cook": 2_300_000_000,
+            "person:larry-ellison": 204_600_000_000, "person:marc-benioff": 10_100_000_000,
+            "person:patrick-collison": 7_200_000_000, "person:john-collison": 7_200_000_000,
+            "person:jack-dorsey": 5_100_000_000, "person:evan-spiegel": 2_500_000_000,
+            "person:bobby-murphy": 2_600_000_000, "person:brian-chesky": 11_900_000_000,
+            "person:travis-kalanick": 4_000_000_000, "person:dara-khosrowshahi": 250_000_000
         ]
         let forbesIDs: Set<GraphNode.ID> = [
             "person:elon-musk", "person:peter-thiel", "person:reid-hoffman", "person:larry-page",
             "person:sergey-brin", "person:mark-zuckerberg", "person:dustin-moskovitz",
             "person:sheryl-sandberg", "person:bill-gates", "person:steve-ballmer",
-            "person:satya-nadella", "person:jeff-bezos", "person:jensen-huang"
+            "person:satya-nadella", "person:jeff-bezos", "person:jensen-huang",
+            "person:larry-ellison", "person:marc-benioff", "person:patrick-collison",
+            "person:john-collison", "person:jack-dorsey", "person:evan-spiegel",
+            "person:bobby-murphy", "person:brian-chesky", "person:travis-kalanick"
         ]
         var result = values.mapValues { amount in
             DossierWealth(
@@ -273,8 +282,17 @@ private extension DenseGraphDossierFactory {
             "person:dustin-moskovitz": details(1984, 5, 22), "person:sheryl-sandberg": details(1969, 8, 28),
             "person:bill-gates": details(1955, 10, 28), "person:steve-ballmer": details(1956, 3, 24),
             "person:satya-nadella": details(1967, 8, 19), "person:jeff-bezos": details(1964, 1, 12),
-            "person:jensen-huang": details(1963, 2, 17)
+            "person:jensen-huang": details(1963, 2, 17), "person:tim-cook": details(1960, 11, 1),
+            "person:larry-ellison": details(1944, 8, 17), "person:marc-benioff": details(1964, 9, 25),
+            "person:patrick-collison": details(1988, 9, 9), "person:john-collison": details(1990, 8, 6),
+            "person:jack-dorsey": details(1976, 11, 19), "person:evan-spiegel": details(1990, 6, 4),
+            "person:bobby-murphy": details(1988, 7, 19), "person:brian-chesky": details(1981, 8, 29),
+            "person:travis-kalanick": details(1976, 8, 6), "person:dara-khosrowshahi": details(1969, 5, 28)
         ]
+        values["person:steve-jobs"] = DossierPersonDetails(
+            birthDate: .init(year: 1955, month: 2, day: 24),
+            ageReferenceDate: .init(year: 2011, month: 10, day: 5)
+        )
         values["person:susan-wojcicki"] = DossierPersonDetails(
             birthDate: .init(year: 1968, month: 7, day: 5),
             ageReferenceDate: .init(year: 2024, month: 8, day: 9)
@@ -339,7 +357,26 @@ private extension DenseGraphDossierFactory {
         "organization:de-shaw": "Количественные инвестиции и управление активами",
         "organization:fitel": "Телекоммуникационные финансовые сети",
         "organization:bankers-trust": "Инвестиционно-банковские услуги",
-        "organization:lsi": "Полупроводники и интегральные схемы"
+        "organization:lsi": "Полупроводники и интегральные схемы",
+        "organization:atari": "Аркадные автоматы, игровые консоли и видеоигры",
+        "organization:next": "Рабочие станции и объектно-ориентированные операционные системы",
+        "organization:pixar": "Компьютерная анимация и кинопроизводство",
+        "organization:ibm": "Корпоративные вычислительные системы и консалтинг",
+        "organization:compaq": "Персональные компьютеры и серверы",
+        "organization:ampex": "Магнитная запись и видеотехнологии",
+        "organization:oracle": "Корпоративные базы данных и облачные сервисы",
+        "organization:salesforce": "CRM-платформа и облачные бизнес-приложения",
+        "organization:auctomatic": "Инструменты для продавцов на онлайн-маркетплейсах",
+        "organization:twitter": "Социальная сеть коротких публичных сообщений",
+        "organization:block": "Финансовые технологии и платежные сервисы",
+        "organization:snap": "Камера, визуальные коммуникации и социальные сервисы",
+        "organization:airbnb": "Маркетплейс краткосрочной аренды жилья и путешествий",
+        "organization:scour": "Поиск мультимедиа и обмен файлами",
+        "organization:red-swoosh": "P2P-доставка цифрового контента",
+        "organization:uber": "Платформа мобильности, доставки и логистики",
+        "organization:allen-company": "Инвестиционный банк и медиаконсалтинг",
+        "organization:iac": "Интернет-холдинг потребительских сервисов",
+        "organization:expedia": "Онлайн-сервисы бронирования путешествий"
     ]
 
     static let foundationYears: [String: Int] = [
@@ -347,30 +384,43 @@ private extension DenseGraphDossierFactory {
         "organization:openai": 2015, "organization:paypal": 1998, "organization:google": 1998,
         "organization:alphabet": 2015, "organization:meta": 2004, "organization:microsoft": 1975,
         "organization:amazon": 1994, "organization:nvidia": 1993, "organization:linkedin": 2002,
-        "organization:stripe": 2010, "organization:neuralink": 2016, "organization:xai": 2023
+        "organization:stripe": 2010, "organization:neuralink": 2016, "organization:xai": 2023,
+        "organization:apple": 1976, "organization:next": 1985, "organization:pixar": 1979,
+        "organization:oracle": 1977, "organization:salesforce": 1999, "organization:twitter": 2006,
+        "organization:block": 2009, "organization:snap": 2011, "organization:airbnb": 2008,
+        "organization:uber": 2009, "organization:expedia": 1996
     ]
 
     static let universityMetadata: [String: (type: String, location: String, operatingPeriod: String)] = [
+        "university:auburn": ("Публичный исследовательский университет", "Оберн, Алабама, США", "1856"),
         "university:auckland": ("Публичный исследовательский университет", "Окленд, Новая Зеландия", "1883"),
         "university:berkeley": ("Публичный исследовательский университет", "Беркли, Калифорния, США", "1868"),
         "university:booth": ("Бизнес-школа", "Чикаго, Иллинойс, США", "1898"),
+        "university:brown": ("Частный исследовательский университет", "Провиденс, Род-Айленд, США", "1764"),
+        "university:chicago": ("Частный исследовательский университет", "Чикаго, Иллинойс, США", "1890"),
+        "university:duke": ("Частный исследовательский университет", "Дарем, Северная Каролина, США", "1838"),
         "university:harvard": ("Частный исследовательский университет", "Кембридж, Массачусетс, США", "1636"),
         "university:iit": ("Публичный технический институт", "Кхарагпур, Индия", "1951"),
         "university:manipal": ("Частный технический институт", "Манипал, Индия", "1957"),
         "university:maryland": ("Публичный исследовательский университет", "Колледж-Парк, Мэриленд, США", "1856"),
         "university:michigan": ("Публичный исследовательский университет", "Анн-Арбор, Мичиган, США", "1817"),
         "university:mit": ("Частный исследовательский университет", "Кембридж, Массачусетс, США", "1861"),
+        "university:mst": ("Публичный технический университет", "Ролла, Миссури, США", "1870"),
         "university:northwestern": ("Частный исследовательский университет", "Эванстон, Иллинойс, США", "1851"),
+        "university:nyu": ("Частный исследовательский университет", "Нью-Йорк, США", "1831"),
         "university:oregon-state": ("Публичный исследовательский университет", "Корваллис, Орегон, США", "1868"),
         "university:oxford": ("Исследовательский университет", "Оксфорд, Великобритания", "около 1096"),
         "university:princeton": ("Частный исследовательский университет", "Принстон, Нью-Джерси, США", "1746"),
         "university:queens": ("Публичный исследовательский университет", "Кингстон, Онтарио, Канада", "1841"),
+        "university:reed": ("Частный колледж свободных искусств", "Портленд, Орегон, США", "1908"),
+        "university:risd": ("Частный колледж искусства и дизайна", "Провиденс, Род-Айленд, США", "1877"),
         "university:stanford": ("Частный исследовательский университет", "Стэнфорд, Калифорния, США", "1885"),
         "university:toronto": ("Публичный исследовательский университет", "Торонто, Канада", "1827"),
         "university:ucla": ("Публичный исследовательский университет", "Лос-Анджелес, Калифорния, США", "1919"),
         "university:ucsc": ("Публичный исследовательский университет", "Санта-Круз, Калифорния, США", "1965"),
         "university:uiuc": ("Публичный исследовательский университет", "Эрбана-Шампейн, Иллинойс, США", "1867"),
         "university:upenn": ("Частный исследовательский университет", "Филадельфия, Пенсильвания, США", "1740"),
+        "university:usc": ("Частный исследовательский университет", "Лос-Анджелес, Калифорния, США", "1880"),
         "university:uwm": ("Публичный исследовательский университет", "Милуоки, Висконсин, США", "1956"),
         "university:wharton": ("Бизнес-школа", "Филадельфия, Пенсильвания, США", "1881")
     ]
