@@ -1,17 +1,7 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Presentation
-
 extension DenseGraphDossierPanel {
-    var universityCloudVariant: UniversityCloudVariant {
-#if DEBUG
-        debugVariant(argument: "-universityCloudVariant") ?? .soft
-#else
-        .soft
-#endif
-    }
-
     var personMetadata: String? {
         guard let details = dossier.personDetails else { return nil }
         let birthDate = details.birthDate
@@ -23,7 +13,7 @@ extension DenseGraphDossierPanel {
             birthText = "\(birthDate.year) год"
         }
         let personAge = age(from: birthDate, through: reference)
-        return "\(birthText) (\(personAge) \(ageUnit(personAge)))"
+        return "\(birthText) · \(personAge) \(ageUnit(personAge))"
     }
 
     var headerMetadata: String? {
@@ -37,9 +27,12 @@ extension DenseGraphDossierPanel {
 
     var eyebrowText: String? {
         switch node.kind {
-        case .person, .organization: nil
-        case .university: dossier.facts.first { $0.id.hasSuffix(":type") }?.value
-        default: node.kind.dossierTitle
+        case .person, .organization:
+            nil
+        case .university:
+            universityType
+        default:
+            node.kind.dossierTitle
         }
     }
 
@@ -59,53 +52,12 @@ extension DenseGraphDossierPanel {
         return dossier.sortedLinks.filter { !founderIDs.contains($0.id) }
     }
 
-    var organizationPeopleClouds: some View {
-        OrganizationPeopleClouds(
-            founders: organizationFounders,
-            relatedPeople: organizationRelatedPeople,
-            onNavigate: onNavigate
-        )
+    var universityType: String {
+        dossier.facts.first { $0.id.hasSuffix(":type") }?.value ?? node.summary
     }
 
-    var universityTypeCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.Graph.Dossier.type.uppercased())
-                .font(.caption2.bold())
-                .tracking(0.9)
-                .foregroundStyle(node.kind.denseGraphColor)
-            Text(dossier.facts.first { $0.id.hasSuffix(":type") }?.value ?? node.summary)
-                .font(.headline)
-                .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-            if let location = dossier.facts.first(where: { $0.id.hasSuffix(":location") })?.value {
-                Text(location)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .cardSurface(tint: node.kind.denseGraphColor)
-    }
-
-    var universityPeopleSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.Graph.Dossier.peopleAndPrograms)
-                .font(.headline)
-            UniversityPeopleClouds(
-                people: dossier.sortedLinks,
-                showsStudyPeriod: false,
-                usesHorizontalLayout: false,
-                onNavigate: onNavigate
-            )
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cardSurface(tint: node.kind.denseGraphColor)
-    }
-
-    var timelineYearAnchors: [(year: Int, eventID: DossierTimelineEvent.ID)] {
-        var seenYears = Set<Int>()
-        return dossier.timeline.compactMap { event in
-            guard seenYears.insert(event.year).inserted else { return nil }
-            return (event.year, event.id)
-        }
+    var universityLocation: String {
+        dossier.facts.first { $0.id.hasSuffix(":location") }?.value ?? ""
     }
 
     func timelineTint(for event: DossierTimelineEvent) -> Color {
@@ -116,16 +68,6 @@ extension DenseGraphDossierPanel {
         if entityID.hasPrefix("organization:") {
             let link = dossier.links.first { $0.entityID == entityID }
             return link?.isCurrent == false ? .secondary : GraphEntityKind.organization.denseGraphColor
-        }
-        return node.kind.denseGraphColor
-    }
-
-    func color(for link: DossierEntityLink) -> Color {
-        if link.entityID?.hasPrefix("organization:") == true {
-            return GraphEntityKind.organization.denseGraphColor
-        }
-        if link.entityID?.hasPrefix("university:") == true {
-            return GraphEntityKind.university.denseGraphColor
         }
         return GraphEntityKind.person.denseGraphColor
     }
@@ -142,17 +84,7 @@ extension DenseGraphDossierPanel {
     }
 }
 
-// MARK: - Private helpers
-
 private extension DenseGraphDossierPanel {
-    func debugVariant<Variant: RawRepresentable>(argument: String) -> Variant? where Variant.RawValue == Int {
-        let arguments = ProcessInfo.processInfo.arguments
-        guard let index = arguments.firstIndex(of: argument),
-              arguments.indices.contains(index + 1),
-              let rawValue = Int(arguments[index + 1]) else { return nil }
-        return Variant(rawValue: rawValue)
-    }
-
     var currentDateComponents: DossierBirthDate {
         let components = Calendar.current.dateComponents([.year, .month, .day], from: .now)
         return DossierBirthDate(

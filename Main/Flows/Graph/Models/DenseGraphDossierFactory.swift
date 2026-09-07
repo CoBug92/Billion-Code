@@ -186,7 +186,10 @@ private extension DenseGraphDossierFactory {
     static func timeline(from links: [DossierEntityLink]) -> [DossierTimelineEvent] {
         links
             .filter { $0.startYear > .zero }
-            .sorted { $0.startYear < $1.startYear }
+            .sorted {
+                if $0.startYear != $1.startYear { return $0.startYear > $1.startYear }
+                return $0.id < $1.id
+            }
             .map {
                 DossierTimelineEvent(
                     id: "timeline:\($0.id)",
@@ -205,7 +208,7 @@ private extension DenseGraphDossierFactory {
     ) -> [DossierTimelineEvent] {
         (timeline(from: links) + (OrganizationDossierHighlights.events[organizationID] ?? []))
             .sorted {
-                if $0.year != $1.year { return $0.year < $1.year }
+                if $0.year != $1.year { return $0.year > $1.year }
                 return $0.id < $1.id
             }
     }

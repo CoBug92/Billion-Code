@@ -45,7 +45,7 @@
 | T-004 | SwiftData не используется для immutable editorial content | `proposed` | 2026-09-01 | Planning-сессия, iOS plan review | Появление пользовательской синхронизируемой модели |
 | T-005 | Xcode 26.2, Swift 6.2.3 и pinned toolchain | `proposed` | 2026-09-01 | Planning-сессия, локальная toolchain/scaffold-проверка | Успешные build/test в среде с рабочим CoreSimulator |
 | T-006 | People-only проекция агрегирует общий доказанный контекст, organic layout детерминирован по ID/version | `superseded` | 2026-09-01 | План и локальный source-backed graph spike | Агрегация evidence сохранена; organic renderer заменён ADR-0007 |
-| T-007 | Карточка человека и список связей объединены в draggable-панель `collapsed/medium/expanded` | `proposed` | 2026-09-01 | План и локальный SwiftUI spike | Ручная проверка scroll/drag, safe areas и Dynamic Type |
+| T-007 | Досье выбранной ноды открывается системным SwiftUI sheet с `compact` 40% и модальным `large` detent | `accepted` | 2026-09-05 | Полный code/design review экрана досье | Accessibility audit на реальном устройстве |
 | T-008 | `GraphAtlas` показывает одну детерминированную главу, морфит общих людей и рисует маршруты только выбранного человека | `superseded` | 2026-09-01 | План «Кинематографичный редакционный атлас графа», ADR-0007, локальная реализация | Заменено T-009 и ADR-0008 |
 | T-009 | Нативный dense graph использует предрассчитанный deterministic force-layout, `Canvas` для прямых рёбер и SwiftUI-кнопки для узлов | `proposed` | 2026-09-03 | Локальный native spike, ADR-0008 | Профилирование на реальном iOS 18-устройстве и accessibility audit |
 

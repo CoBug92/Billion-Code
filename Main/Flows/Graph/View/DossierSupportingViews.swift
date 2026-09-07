@@ -1,169 +1,226 @@
 import SwiftUI
 
-struct DossierWealthSection: View {
+struct DossierLeadCard: View {
+    let title: String
+    let value: String
+    let tint: Color
+    let symbol: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol)
+                .font(.headline)
+                .foregroundStyle(tint)
+                .frame(width: 42, height: 42)
+                .background(tint.opacity(0.13), in: Circle())
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title.uppercased())
+                    .font(.caption2.weight(.bold))
+                    .tracking(1)
+                    .foregroundStyle(tint)
+                Text(value)
+                    .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(15)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dossierSurface(tint: tint, cornerRadius: 22)
+    }
+}
+
+struct DossierStorySection: View {
+    let title: String
+    let text: String
+    let tint: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(title, systemImage: AppSymbols.quote)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(tint)
+            Text(text)
+                .font(.body)
+                .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 3)
+        .padding(.leading, 15)
+        .overlay(alignment: .leading) {
+            Capsule().fill(tint).frame(width: 3)
+        }
+    }
+}
+
+struct DossierWealthBreakdown: View {
     let wealth: DossierWealth
-    let formattedAmount: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Оценка состояния", systemImage: AppSymbols.wealth)
-                .font(.headline)
-                .foregroundStyle(Asset.Colors.chapterBlue.swiftUIColor)
-            VStack(alignment: .leading, spacing: 10) {
-                Text(formattedAmount)
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                ForEach(wealth.components) { component in
+            DossierSectionHeader(title: "Структура состояния", tint: blue)
+            ForEach(wealth.components) { component in
+                HStack(alignment: .top, spacing: 10) {
+                    Circle()
+                        .fill(blue.opacity(0.7))
+                        .frame(width: 7, height: 7)
+                        .padding(.top, 5)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(component.label).font(.subheadline.bold())
+                        Text(component.label).font(.subheadline.weight(.semibold))
                         Text(component.detail).font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                if wealth.history.count >= 3 {
-                    WealthHistoryView(points: wealth.history)
-                        .frame(height: 120)
+            }
+            if wealth.history.count >= 3 {
+                WealthHistoryView(points: wealth.history)
+                    .frame(height: 112)
+            }
+        }
+        .padding(16)
+        .dossierSurface(tint: blue, cornerRadius: 22)
+    }
+
+    private var blue: Color { Asset.Colors.chapterBlue.swiftUIColor }
+}
+
+struct DossierFactsSection: View {
+    let title: String
+    let facts: [DossierFact]
+    let tint: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            DossierSectionHeader(title: title, tint: tint)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 138), spacing: 9)], spacing: 9) {
+                ForEach(facts) { fact in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(fact.label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(fact.value)
+                            .font(.subheadline.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, minHeight: 68, alignment: .leading)
+                    .background(.secondary.opacity(0.065), in: RoundedRectangle(cornerRadius: 16))
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            LinearGradient(
-                colors: [Asset.Colors.chapterBlue.swiftUIColor.opacity(0.24), .cyan.opacity(0.08)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ),
-            in: RoundedRectangle(cornerRadius: 26, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(Asset.Colors.chapterBlue.swiftUIColor.opacity(0.3), lineWidth: 1.5)
-        )
-        .shadow(color: Asset.Colors.chapterBlue.swiftUIColor.opacity(0.08), radius: 14, y: 6)
     }
 }
 
-extension View {
-    func cardSurface(tint: Color) -> some View {
-        padding(16)
-            .background(
-                LinearGradient(
-                    colors: [tint.opacity(0.105), .secondary.opacity(0.045)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(tint.opacity(0.16), lineWidth: 1)
-            )
-    }
-}
-
-struct DossierFactCard: View {
-    let fact: DossierFact
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(fact.label).font(.caption).foregroundStyle(.secondary)
-                Text(fact.value).font(.subheadline.weight(.semibold))
-            }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
-        .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-    }
-}
-
-struct DossierLinkChip: View {
-    let link: DossierEntityLink
+struct DossierTimelinePreview: View {
+    let events: [DossierTimelineEvent]
     let tint: Color
-    let onNavigate: (GraphNode.ID) -> Void
 
     var body: some View {
-        Button {
-            if let entityID = link.entityID { onNavigate(entityID) }
-        } label: {
-            HStack(spacing: 5) {
-                Circle()
-                    .fill(link.isCurrent ? Color.green : Color.secondary.opacity(0.55))
-                    .frame(width: 6, height: 6)
-                Text(link.name).lineLimit(1)
-            }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-            .padding(.horizontal, 10)
-            .frame(height: 34)
-            .background(tint.opacity(0.11), in: Capsule())
-            .overlay(Capsule().stroke(tint.opacity(0.18)))
-        }
-        .buttonStyle(.plain)
-        .disabled(link.entityID == nil)
-    }
-}
-
-struct DossierLinkRow: View {
-    let link: DossierEntityLink
-    let tint: Color
-    let onNavigate: (GraphNode.ID) -> Void
-
-    var body: some View {
-        Button {
-            if let entityID = link.entityID { onNavigate(entityID) }
-        } label: {
-            HStack(spacing: 12) {
-                Circle().fill(link.isCurrent ? Color.green : Color.secondary.opacity(0.45)).frame(width: 8, height: 8)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(link.name).font(.subheadline.bold())
-                    Text("\(link.role) · \(link.period)").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            DossierSectionHeader(title: "Ключевой путь", tint: tint)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(events) { event in
+                        HStack(spacing: 7) {
+                            Text(String(event.year))
+                                .font(.caption2.weight(.bold).monospacedDigit())
+                                .foregroundStyle(tint)
+                            Text(event.title)
+                                .font(.caption.weight(.semibold))
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 11)
+                        .frame(height: 34)
+                        .background(tint.opacity(0.09), in: Capsule())
+                    }
                 }
-                Spacer()
-                if link.entityID != nil { Image(systemName: AppSymbols.chevron).font(.caption.bold()) }
             }
-            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-            .padding(12)
-            .background(tint.opacity(0.09), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(tint.opacity(0.16)))
         }
-        .buttonStyle(.plain)
-        .disabled(link.entityID == nil)
     }
 }
 
-struct DossierTimelineCard: View {
+struct DossierTimelineSection: View {
+    let title: String
+    let events: [DossierTimelineEvent]
+    let sectionTint: Color
+    let tintForEvent: (DossierTimelineEvent) -> Color
+    let onNavigate: (GraphNode.ID) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            DossierSectionHeader(title: title, tint: sectionTint)
+            ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                DossierTimelineRow(
+                    event: event,
+                    tint: tintForEvent(event),
+                    isLast: index == events.count - 1,
+                    onNavigate: onNavigate
+                )
+            }
+        }
+    }
+}
+
+private struct DossierTimelineRow: View {
     let event: DossierTimelineEvent
     let tint: Color
+    let isLast: Bool
     let onNavigate: (GraphNode.ID) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text(String(event.year))
-                .font(.caption.bold().monospacedDigit())
-                .foregroundStyle(tint)
-                .padding(.horizontal, 8)
-                .frame(minWidth: 48, minHeight: 30)
-                .background(tint.opacity(0.12), in: Capsule())
-            VStack(alignment: .leading, spacing: 4) {
-                Text(event.title).font(.subheadline.bold())
-                Text(event.description).font(.caption).foregroundStyle(.secondary)
+            VStack(spacing: .zero) {
+                Circle()
+                    .fill(tint)
+                    .frame(width: 10, height: 10)
+                    .overlay(Circle().stroke(Asset.Colors.surfacePrimary.swiftUIColor, lineWidth: 3))
+                if !isLast {
+                    Rectangle()
+                        .fill(tint.opacity(0.22))
+                        .frame(width: 2)
+                        .frame(minHeight: 58)
+                }
             }
-            .padding(.vertical, 3)
-            Spacer()
+            .frame(width: 12)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(event.year))
+                    .font(.caption.weight(.bold).monospacedDigit())
+                    .foregroundStyle(tint)
+                Text(event.title)
+                    .font(.subheadline.weight(.semibold))
+                Text(event.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.bottom, isLast ? .zero : 13)
+
+            Spacer(minLength: 4)
             if let entityID = event.linkedEntityID {
-                Button { onNavigate(entityID) } label: {
+                Button {
+                    onNavigate(entityID)
+                } label: {
                     Image(systemName: AppSymbols.chevron)
-                        .font(.caption.bold())
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(tint)
                         .frame(width: 44, height: 44)
+                        .background(tint.opacity(0.09), in: Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(L10n.Graph.Dossier.openNode(event.title))
             }
         }
-        .padding(12)
-        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.bottom, 9)
+    }
+}
+
+struct DossierSectionHeader: View {
+    let title: String
+    let tint: Color
+
+    var body: some View {
+        Text(title.uppercased())
+            .font(.caption2.weight(.bold))
+            .tracking(1)
+            .foregroundStyle(tint)
     }
 }
 
@@ -179,7 +236,7 @@ struct WealthHistoryView: View {
                 for (index, point) in points.enumerated() {
                     let x = geometry.size.width * CGFloat(index) / CGFloat(max(points.count - 1, 1))
                     let ratio = (Double(point.amountUSD) - minimum) / max(maximum - minimum, 1)
-                    let y = geometry.size.height * (1 - CGFloat(ratio))
+                    let y = 6 + (geometry.size.height - 12) * (1 - CGFloat(ratio))
                     if index == .zero {
                         path.move(to: CGPoint(x: x, y: y))
                     } else {
@@ -193,6 +250,23 @@ struct WealthHistoryView: View {
             )
         }
         .accessibilityLabel("Динамика оценки состояния")
+    }
+}
+
+extension View {
+    func dossierSurface(tint: Color, cornerRadius: CGFloat) -> some View {
+        background(
+            LinearGradient(
+                colors: [tint.opacity(0.11), .secondary.opacity(0.035)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(tint.opacity(0.15))
+        )
     }
 }
 

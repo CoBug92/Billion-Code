@@ -1,73 +1,94 @@
-import Foundation
 import SwiftUI
 
 struct DenseGraphRootView: View {
     @State private var viewModel: DenseGraphViewModel
-    @State private var panelDetent = DenseDossierDetent.collapsed
-    @State private var compactPanelHeight = CGFloat.zero
-    @State private var pendingFocusedNodeID: GraphNode.ID?
+    @State private var panelDetent: DenseDossierDetent
+    @State private var isDossierPresented: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(viewModel: DenseGraphViewModel) {
         _viewModel = State(initialValue: viewModel)
+        _isDossierPresented = State(initialValue: viewModel.hasSelection)
 #if DEBUG
-        _panelDetent = State(
-            initialValue: ProcessInfo.processInfo.arguments.contains("-expandedDossier") ? .expanded : .collapsed
-        )
+        let startsExpanded = ProcessInfo.processInfo.arguments.contains("-expandedDossier")
+        _panelDetent = State(initialValue: startsExpanded ? .expanded : .compact)
+#else
+        _panelDetent = State(initialValue: .compact)
 #endif
     }
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottom) {
-                DenseGraphSceneView(viewModel: viewModel)
-
-                if let node = viewModel.selectedNode, let dossier = viewModel.selectedDossier {
-                    DenseGraphDossierPanel(
-                        node: node,
-                        dossier: dossier,
-                        availableHeight: geometry.size.height,
-                        bottomSafeArea: geometry.safeAreaInsets.bottom,
-                        canNavigateBack: viewModel.canNavigateBack,
-                        detent: $panelDetent,
-                        onNavigate: { nodeID in
-                            navigate(to: nodeID, geometry: geometry)
-                        },
-                        onBack: navigateBack,
-                        onClose: closeDossier,
-                        onCompactHeightChange: { nodeID, height in
-                            updateCompactPanelHeight(height, for: nodeID, geometry: geometry)
-                        }
-                    )
-                    .offset(y: geometry.safeAreaInsets.bottom)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .ignoresSafeArea(edges: .bottom)
+            DenseGraphSceneView(viewModel: viewModel)
+                .sheet(isPresented: $isDossierPresented, onDismiss: dossierDidDismiss) {
+                    dossierSheet(geometry: geometry)
                 }
-            }
-            .animation(reduceMotion ? nil : .dossierSheet, value: viewModel.selectedNodeID)
-            .onChange(of: viewModel.selectedNodeID) { _, selectedNodeID in
-                guard selectedNodeID != nil else { return }
-                guard pendingFocusedNodeID == nil else {
-                    if pendingFocusedNodeID != selectedNodeID { pendingFocusedNodeID = nil }
-                    return
+                .onChange(of: viewModel.selectedNodeID, initial: true) { previousID, selectedID in
+                    selectionDidChange(from: previousID, to: selectedID)
                 }
-                panelDetent = .collapsed
-            }
         }
     }
 }
 
-// MARK: - Private methods
+// MARK: - Dossier presentation
+
+private extension DenseGraphRootView {
+    @ViewBuilder
+    func dossierSheet(geometry: GeometryProxy) -> some View {
+        if let node = viewModel.selectedNode, let dossier = viewModel.selectedDossier {
+            DenseGraphDossierPanel(
+                node: node,
+                dossier: dossier,
+                canNavigateBack: viewModel.canNavigateBack,
+                detent: $panelDetent,
+                onNavigate: { nodeID in navigate(to: nodeID, geometry: geometry) },
+                onBack: navigateBack
+            )
+            .presentationDetents(
+                Set(DenseDossierDetent.allCases.map(\.presentationDetent)),
+                selection: nativeDetent
+            )
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(32)
+            .presentationBackground(Asset.Colors.surfacePrimary.swiftUIColor)
+            .presentationBackgroundInteraction(
+                .enabled(upThrough: DenseDossierDetent.compact.presentationDetent)
+            )
+            .presentationContentInteraction(.scrolls)
+        }
+    }
+
+    var nativeDetent: Binding<PresentationDetent> {
+        Binding(
+            get: { panelDetent.presentationDetent },
+            set: { panelDetent = DenseDossierDetent.resolve($0) }
+        )
+    }
+
+    func selectionDidChange(from previousID: GraphNode.ID?, to selectedID: GraphNode.ID?) {
+        guard selectedID != nil else {
+            isDossierPresented = false
+            return
+        }
+        if previousID != selectedID {
+            panelDetent = .compact
+        }
+        isDossierPresented = true
+    }
+
+    func dossierDidDismiss() {
+        guard viewModel.hasSelection else { return }
+        viewModel.clearSelection()
+    }
+}
+
+// MARK: - Navigation
 
 private extension DenseGraphRootView {
     func navigate(to nodeID: GraphNode.ID, geometry: GeometryProxy) {
         guard viewModel.graph.node(id: nodeID) != nil else { return }
-        pendingFocusedNodeID = nodeID
-        let visibleGraphFrame = visibleGraphFrame(
-            geometry: geometry,
-            panelHeight: effectiveCompactPanelHeight(geometry: geometry)
-        )
+        let visibleGraphFrame = visibleGraphFrame(geometry: geometry)
 
         withAnimation(reduceMotion ? nil : .smooth(duration: .dossierNavigationAnimationDuration)) {
             panelDetent = .compact
@@ -80,45 +101,18 @@ private extension DenseGraphRootView {
     }
 
     func navigateBack() {
-        pendingFocusedNodeID = viewModel.selectedNodeID
         withAnimation(reduceMotion ? nil : .smooth(duration: .dossierNavigationAnimationDuration)) {
             panelDetent = .compact
             viewModel.navigateBack()
         }
     }
 
-    func closeDossier() {
-        pendingFocusedNodeID = nil
-        panelDetent = .collapsed
-        viewModel.clearSelection()
-    }
-
-    func updateCompactPanelHeight(_ height: CGFloat, for nodeID: GraphNode.ID, geometry: GeometryProxy) {
-        compactPanelHeight = height
-        guard pendingFocusedNodeID == nodeID, viewModel.selectedNodeID == nodeID else { return }
-
-        withAnimation(reduceMotion ? nil : .smooth(duration: .dossierNavigationAnimationDuration)) {
-            viewModel.focus(
-                on: nodeID,
-                viewport: geometry.size,
-                visibleGraphFrame: visibleGraphFrame(geometry: geometry, panelHeight: height)
-            )
-        }
-        pendingFocusedNodeID = nil
-    }
-
-    func effectiveCompactPanelHeight(geometry: GeometryProxy) -> CGFloat {
-        guard compactPanelHeight > .zero else {
-            return DenseDossierDetent.fallbackCompactHeight(
-                availableHeight: geometry.size.height,
-                bottomSafeArea: geometry.safeAreaInsets.bottom
-            )
-        }
-        return compactPanelHeight
-    }
-
-    func visibleGraphFrame(geometry: GeometryProxy, panelHeight: CGFloat) -> CGRect {
-        let panelTop = geometry.size.height - panelHeight + geometry.safeAreaInsets.bottom
+    func visibleGraphFrame(geometry: GeometryProxy) -> CGRect {
+        let panelHeight = DenseDossierDetent.estimatedCoveredHeight(
+            availableHeight: geometry.size.height,
+            bottomSafeArea: geometry.safeAreaInsets.bottom
+        )
+        let panelTop = geometry.size.height - panelHeight
         return CGRect(
             x: .zero,
             y: geometry.safeAreaInsets.top,
@@ -131,11 +125,20 @@ private extension DenseGraphRootView {
 // MARK: - Constants
 
 private extension Double {
-    static let dossierNavigationAnimationDuration = 0.45
+    static let dossierNavigationAnimationDuration = 0.42
 }
 
-private extension Animation {
-    static let dossierSheet = Animation.spring(response: 0.4, dampingFraction: 0.94)
+extension DenseDossierDetent {
+    var presentationDetent: PresentationDetent {
+        switch self {
+        case .compact: .fraction(Self.compactFraction)
+        case .expanded: .large
+        }
+    }
+
+    static func resolve(_ presentationDetent: PresentationDetent) -> DenseDossierDetent {
+        presentationDetent == .large ? .expanded : .compact
+    }
 }
 
 // MARK: - Preview

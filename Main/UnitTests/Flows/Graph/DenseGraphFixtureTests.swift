@@ -117,4 +117,14 @@ struct DenseGraphFixtureTests {
             #expect(highlights?.allSatisfy { $0.source != nil } == true)
         }
     }
+
+    @Test("Dossier timelines run from newest to oldest")
+    func reverseChronologicalTimelines() {
+        let graph = DenseGraphFixture.performance
+
+        for dossier in graph.dossiers.values {
+            let years = dossier.timeline.map(\.year)
+            #expect(years == years.sorted(by: >))
+        }
+    }
 }

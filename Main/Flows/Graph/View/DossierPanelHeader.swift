@@ -10,44 +10,42 @@ struct DossierPanelHeader: View {
     let onToggle: () -> Void
 
     var body: some View {
-        VStack(spacing: 8) {
-            Capsule()
-                .fill(.secondary.opacity(0.38))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
-            HStack(spacing: 12) {
-                if canNavigateBack { backButton }
-                entityImage
-                VStack(alignment: .leading, spacing: 3) {
-                    if let eyebrowText {
-                        Text(eyebrowText.uppercased())
-                            .font(.caption2.bold())
-                            .tracking(1.1)
-                            .foregroundStyle(node.kind.denseGraphColor)
-                            .lineLimit(1)
-                    }
-                    Text(node.name)
-                        .font(node.kind == .person ? .title.bold() : .title2.bold())
-                        .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                        .lineLimit(2)
-                    if let metadataText {
-                        Text(metadataText)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+        HStack(spacing: 12) {
+            if canNavigateBack { backButton }
+            entityImage
+            VStack(alignment: .leading, spacing: 3) {
+                if let eyebrowText {
+                    Text(eyebrowText.uppercased())
+                        .font(.caption2.weight(.bold))
+                        .tracking(1)
+                        .foregroundStyle(node.kind.denseGraphColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                        .allowsTightening(true)
                 }
-                Spacer(minLength: 8)
-                toggleButton
+                Text(node.name)
+                    .font(.system(node.kind == .person ? .title2 : .title3, design: .rounded, weight: .bold))
+                    .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                if let metadataText {
+                    Text(metadataText)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 7)
+            Spacer(minLength: 4)
+            toggleButton
         }
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 12)
         .background(
             LinearGradient(
-                colors: [node.kind.denseGraphColor.opacity(0.16), .clear],
+                colors: [node.kind.denseGraphColor.opacity(0.14), .clear],
                 startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                endPoint: .trailing
             )
         )
     }
@@ -55,13 +53,14 @@ struct DossierPanelHeader: View {
     @ViewBuilder
     private var entityImage: some View {
         if node.kind == .person {
-            PersonAvatarView(node: node, diameter: 56, accentColor: node.kind.denseGraphColor)
-                .overlay(Circle().stroke(node.kind.denseGraphColor.opacity(0.32), lineWidth: 2))
+            PersonAvatarView(node: node, diameter: 58, accentColor: node.kind.denseGraphColor)
+                .overlay(Circle().stroke(.white.opacity(0.55), lineWidth: 2))
+                .shadow(color: node.kind.denseGraphColor.opacity(0.18), radius: 8, y: 3)
         } else {
             Image(systemName: node.kind.dossierSymbol)
                 .font(.headline)
                 .foregroundStyle(node.kind.denseGraphColor)
-                .frame(width: 48, height: 48)
+                .frame(width: 52, height: 52)
                 .background(node.kind.denseGraphColor.opacity(0.14), in: Circle())
                 .overlay(Circle().stroke(node.kind.denseGraphColor.opacity(0.28)))
         }
@@ -71,7 +70,7 @@ struct DossierPanelHeader: View {
         Button(action: onBack) {
             Image(systemName: "chevron.left")
                 .frame(width: 44, height: 44)
-                .background(.secondary.opacity(0.12), in: Circle())
+                .background(.secondary.opacity(0.1), in: Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Вернуться к предыдущей ноде")
@@ -81,7 +80,7 @@ struct DossierPanelHeader: View {
         Button(action: onToggle) {
             Image(systemName: detent == .expanded ? "chevron.down" : "chevron.up")
                 .frame(width: 44, height: 44)
-                .background(.secondary.opacity(0.12), in: Circle())
+                .background(.secondary.opacity(0.1), in: Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(detent == .expanded ? "Свернуть досье" : "Развернуть досье")
