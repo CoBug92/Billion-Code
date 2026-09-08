@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct DossierPanelHeader: View {
+
+    // MARK: - Inputs
+
     let node: GraphNode
     let eyebrowText: String?
     let metadataText: String?
@@ -8,6 +11,10 @@ struct DossierPanelHeader: View {
     let canNavigateBack: Bool
     let onBack: () -> Void
     let onToggle: () -> Void
+
+    // MARK: - Properties
+
+    @State private var isPortraitPresented = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -33,6 +40,8 @@ struct DossierPanelHeader: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .allowsTightening(true)
                 }
             }
             Spacer(minLength: 4)
@@ -48,14 +57,36 @@ struct DossierPanelHeader: View {
                 endPoint: .trailing
             )
         )
+        .fullScreenCover(isPresented: $isPortraitPresented) {
+            if let portrait = node.portrait {
+                PortraitPreviewView(
+                    personName: node.name,
+                    portrait: portrait,
+                    onDismiss: { isPortraitPresented = false }
+                )
+            }
+        }
     }
+}
 
+// MARK: - Layout
+
+private extension DossierPanelHeader {
     @ViewBuilder
-    private var entityImage: some View {
+    var entityImage: some View {
         if node.kind == .person {
-            PersonAvatarView(node: node, diameter: 58, accentColor: node.kind.denseGraphColor)
-                .overlay(Circle().stroke(.white.opacity(0.55), lineWidth: 2))
-                .shadow(color: node.kind.denseGraphColor.opacity(0.18), radius: 8, y: 3)
+            if node.portrait == nil {
+                personAvatar
+            } else {
+                Button {
+                    isPortraitPresented = true
+                } label: {
+                    personAvatar
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.Graph.Dossier.Portrait.open)
+                .accessibilityValue(node.name)
+            }
         } else {
             Image(systemName: node.kind.dossierSymbol)
                 .font(.headline)
@@ -66,9 +97,23 @@ struct DossierPanelHeader: View {
         }
     }
 
-    private var backButton: some View {
+    var personAvatar: some View {
+        PersonAvatarView(
+            node: node,
+            diameter: 58,
+            accentColor: node.kind.denseGraphColor
+        )
+        .overlay(Circle().stroke(.white.opacity(0.55), lineWidth: 2))
+        .shadow(
+            color: node.kind.denseGraphColor.opacity(0.18),
+            radius: 8,
+            y: 3
+        )
+    }
+
+    var backButton: some View {
         Button(action: onBack) {
-            Image(systemName: "chevron.left")
+            Image(systemName: AppSymbols.previous)
                 .frame(width: 44, height: 44)
                 .background(.secondary.opacity(0.1), in: Circle())
         }
@@ -76,9 +121,9 @@ struct DossierPanelHeader: View {
         .accessibilityLabel("Вернуться к предыдущей ноде")
     }
 
-    private var toggleButton: some View {
+    var toggleButton: some View {
         Button(action: onToggle) {
-            Image(systemName: detent == .expanded ? "chevron.down" : "chevron.up")
+            Image(systemName: detent == .expanded ? AppSymbols.collapse : AppSymbols.expand)
                 .frame(width: 44, height: 44)
                 .background(.secondary.opacity(0.1), in: Circle())
         }

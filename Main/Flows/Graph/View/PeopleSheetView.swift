@@ -14,18 +14,18 @@ struct PeopleSheetView: View {
                     onSelect(person.id)
                 } label: {
                     HStack(spacing: Margin.x5) {
-                        Image(systemName: AppSymbols.person)
-                            .foregroundStyle(Asset.Colors.accentColor.swiftUIColor)
-                            .frame(
-                                width: .minimumTouchTarget,
-                                height: .minimumTouchTarget
-                            )
+                        PersonAvatarView(
+                            node: person,
+                            diameter: .minimumTouchTarget
+                        )
                         VStack(alignment: .leading, spacing: Margin.x2) {
                             Text(person.name)
                                 .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
-                            Text(person.summary)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            if !person.summary.isEmpty {
+                                Text(person.summary)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         Spacer(minLength: Margin.x4)
                         if person.id == selectedNodeID {

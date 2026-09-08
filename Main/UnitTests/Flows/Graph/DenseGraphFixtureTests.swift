@@ -1,3 +1,4 @@
+import SwiftUI
 import Testing
 @testable import BillionCode
 
@@ -78,6 +79,22 @@ struct DenseGraphFixtureTests {
             #expect(dossier?.kind == node.kind)
             #expect(dossier?.description.isEmpty == false)
         }
+    }
+
+    @Test("Living and deceased people preserve distinct life status data")
+    @MainActor
+    func personLifeStatus() {
+        let graph = DenseGraphFixture.performance
+        let livingPanel = dossierPanel(personID: "person:elon-musk", graph: graph)
+        let deceasedPanel = dossierPanel(personID: "person:steve-jobs", graph: graph)
+
+        #expect(graph.dossier(id: "person:elon-musk")?.personDetails?.deathDate == nil)
+        #expect(
+            graph.dossier(id: "person:steve-jobs")?.personDetails?.deathDate
+                == DossierBirthDate(year: 2011, month: 10, day: 5)
+        )
+        #expect(livingPanel?.personMetadata?.hasPrefix("28 июня 1971 — ") == true)
+        #expect(deceasedPanel?.personMetadata == "24 февраля 1955 — 5 октября 2011")
     }
 
     @Test("Organizations and universities use specific public-facing types")
@@ -163,5 +180,23 @@ struct DenseGraphFixtureTests {
             let years = dossier.timeline.map(\.year)
             #expect(years == years.sorted(by: >))
         }
+    }
+}
+
+private extension DenseGraphFixtureTests {
+    @MainActor
+    func dossierPanel(personID: GraphNode.ID, graph: DenseGraphData) -> DenseGraphDossierPanel? {
+        guard
+            let node = graph.node(id: personID),
+            let dossier = graph.dossier(id: personID)
+        else { return nil }
+        return DenseGraphDossierPanel(
+            node: node,
+            dossier: dossier,
+            canNavigateBack: false,
+            detent: .constant(.compact),
+            onNavigate: { _ in },
+            onBack: {}
+        )
     }
 }

@@ -477,7 +477,7 @@ private extension DenseGraphDossierFactory {
 
     static let personDetailsByID: [GraphNode.ID: DossierPersonDetails] = {
         func details(_ year: Int, _ month: Int? = nil, _ day: Int? = nil) -> DossierPersonDetails {
-            DossierPersonDetails(birthDate: .init(year: year, month: month, day: day), ageReferenceDate: nil)
+            DossierPersonDetails(birthDate: .init(year: year, month: month, day: day), deathDate: nil)
         }
         var values: [GraphNode.ID: DossierPersonDetails] = [
             "person:elon-musk": details(1971, 6, 28), "person:kimbal-musk": details(1972, 9, 20),
@@ -542,66 +542,69 @@ private extension DenseGraphDossierFactory {
         ]
         values["person:edward-johnson-iii"] = DossierPersonDetails(
             birthDate: .init(year: 1930, month: 6, day: 29),
-            ageReferenceDate: .init(year: 2022, month: 3, day: 23)
+            deathDate: .init(year: 2022, month: 3, day: 23)
         )
         values["person:sheldon-adelson"] = DossierPersonDetails(
             birthDate: .init(year: 1933, month: 8, day: 4),
-            ageReferenceDate: .init(year: 2021, month: 1, day: 11)
+            deathDate: .init(year: 2021, month: 1, day: 11)
         )
         values["person:jim-simons"] = DossierPersonDetails(
             birthDate: .init(year: 1938, month: 4, day: 25),
-            ageReferenceDate: .init(year: 2024, month: 5, day: 10)
+            deathDate: .init(year: 2024, month: 5, day: 10)
         )
         values["person:sam-zell"] = DossierPersonDetails(
             birthDate: .init(year: 1941, month: 9, day: 28),
-            ageReferenceDate: .init(year: 2023, month: 5, day: 18)
+            deathDate: .init(year: 2023, month: 5, day: 18)
         )
         values["person:paul-allen"] = DossierPersonDetails(
             birthDate: .init(year: 1953, month: 1, day: 21),
-            ageReferenceDate: .init(year: 2018, month: 10, day: 15)
+            deathDate: .init(year: 2018, month: 10, day: 15)
         )
         values["person:charlie-munger"] = DossierPersonDetails(
             birthDate: .init(year: 1924, month: 1, day: 1),
-            ageReferenceDate: .init(year: 2023, month: 11, day: 28)
+            deathDate: .init(year: 2023, month: 11, day: 28)
         )
         values["person:sam-walton"] = DossierPersonDetails(
             birthDate: .init(year: 1918, month: 3, day: 29),
-            ageReferenceDate: .init(year: 1992, month: 4, day: 5)
+            deathDate: .init(year: 1992, month: 4, day: 5)
         )
         values["person:henry-ford"] = DossierPersonDetails(
             birthDate: .init(year: 1863, month: 7, day: 30),
-            ageReferenceDate: .init(year: 1947, month: 4, day: 7)
+            deathDate: .init(year: 1947, month: 4, day: 7)
         )
         values["person:alfred-sloan"] = DossierPersonDetails(
             birthDate: .init(year: 1875, month: 5, day: 23),
-            ageReferenceDate: .init(year: 1966, month: 2, day: 17)
+            deathDate: .init(year: 1966, month: 2, day: 17)
         )
         values["person:gordon-moore"] = DossierPersonDetails(
             birthDate: .init(year: 1929, month: 1, day: 3),
-            ageReferenceDate: .init(year: 2023, month: 3, day: 24)
+            deathDate: .init(year: 2023, month: 3, day: 24)
         )
         values["person:robert-noyce"] = DossierPersonDetails(
             birthDate: .init(year: 1927, month: 12, day: 12),
-            ageReferenceDate: .init(year: 1990, month: 6, day: 3)
+            deathDate: .init(year: 1990, month: 6, day: 3)
         )
         values["person:andy-grove"] = DossierPersonDetails(
             birthDate: .init(year: 1936, month: 9, day: 2),
-            ageReferenceDate: .init(year: 2016, month: 3, day: 21)
+            deathDate: .init(year: 2016, month: 3, day: 21)
         )
         values["person:steve-jobs"] = DossierPersonDetails(
             birthDate: .init(year: 1955, month: 2, day: 24),
-            ageReferenceDate: .init(year: 2011, month: 10, day: 5)
+            deathDate: .init(year: 2011, month: 10, day: 5)
         )
         values["person:susan-wojcicki"] = DossierPersonDetails(
             birthDate: .init(year: 1968, month: 7, day: 5),
-            ageReferenceDate: .init(year: 2024, month: 8, day: 9)
+            deathDate: .init(year: 2024, month: 8, day: 9)
         )
         for person in AmericanBillionairesCatalog.current.people {
             guard
                 let birthDate = person.birthDate,
-                let parsed = parseBirthDate(birthDate)
+                let parsedBirthDate = parseBirthDate(birthDate)
             else { continue }
-            values[person.id] = DossierPersonDetails(birthDate: parsed, ageReferenceDate: nil)
+            values[person.id] = DossierPersonDetails(
+                birthDate: parsedBirthDate,
+                deathDate: values[person.id]?.deathDate
+            )
         }
         return values
     }()

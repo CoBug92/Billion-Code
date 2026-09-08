@@ -84,6 +84,14 @@ public enum L10n {
       public static let relatedPeople = L10n.tr("Localizable", "graph.dossier.related_people", fallback: "Связанные люди")
       /// Тип
       public static let type = L10n.tr("Localizable", "graph.dossier.type", fallback: "Тип")
+      public enum Portrait {
+        /// Портрет: %@
+        public static func label(_ p1: Any) -> String {
+          return L10n.tr("Localizable", "graph.dossier.portrait.label", String(describing: p1), fallback: "Портрет: %@")
+        }
+        /// Открыть портрет
+        public static let `open` = L10n.tr("Localizable", "graph.dossier.portrait.open", fallback: "Открыть портрет")
+      }
     }
     public enum Entity {
       /// Сделка

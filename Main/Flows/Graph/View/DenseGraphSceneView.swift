@@ -228,9 +228,7 @@ private extension DenseGraphSceneView {
                                 selectSearchResult(node)
                             } label: {
                                 HStack(spacing: 8) {
-                                    Circle()
-                                        .fill(node.kind.denseGraphColor)
-                                        .frame(width: 8, height: 8)
+                                    DenseGraphSearchResultIcon(node: node)
                                     Text(node.name)
                                         .font(.subheadline)
                                         .lineLimit(1)

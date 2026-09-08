@@ -4,16 +4,12 @@ import SwiftUI
 extension DenseGraphDossierPanel {
     var personMetadata: String? {
         guard let details = dossier.personDetails else { return nil }
-        let birthDate = details.birthDate
-        let reference = details.ageReferenceDate ?? currentDateComponents
-        let birthText: String
-        if let month = birthDate.month, let day = birthDate.day {
-            birthText = "\(day) \(russianMonth(month)) \(birthDate.year)"
-        } else {
-            birthText = "\(birthDate.year) год"
+        let birthText = formattedDate(details.birthDate)
+        if let deathDate = details.deathDate {
+            return "\(birthText) — \(formattedDate(deathDate))"
         }
-        let personAge = age(from: birthDate, through: reference)
-        return "\(birthText) · \(personAge) \(ageUnit(personAge))"
+        let personAge = age(from: details.birthDate, through: currentDateComponents)
+        return "\(birthText) — \(personAge) \(ageUnit(personAge))"
     }
 
     var headerMetadata: String? {
@@ -85,6 +81,13 @@ extension DenseGraphDossierPanel {
 }
 
 private extension DenseGraphDossierPanel {
+    func formattedDate(_ date: DossierBirthDate) -> String {
+        if let month = date.month, let day = date.day {
+            return "\(day) \(russianMonth(month)) \(date.year)"
+        }
+        return "\(date.year) год"
+    }
+
     var currentDateComponents: DossierBirthDate {
         let components = Calendar.current.dateComponents([.year, .month, .day], from: .now)
         return DossierBirthDate(

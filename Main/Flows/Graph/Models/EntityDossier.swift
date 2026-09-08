@@ -27,7 +27,7 @@ struct EntityDossier: Equatable, Sendable {
 
 struct DossierPersonDetails: Equatable, Sendable {
     let birthDate: DossierBirthDate
-    let ageReferenceDate: DossierBirthDate?
+    let deathDate: DossierBirthDate?
 }
 
 struct DossierBirthDate: Equatable, Sendable {

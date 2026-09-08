@@ -29,6 +29,8 @@
 "graph.panel.collapse" = "Свернуть";
 "graph.dossier.current_companies" = "Бизнес и активы";
 "graph.dossier.close" = "Закрыть";
+"graph.dossier.portrait.open" = "Открыть портрет";
+"graph.dossier.portrait.label" = "Портрет: %@";
 "graph.dossier.past_companies" = "Прошлые компании";
 "graph.dossier.education" = "Образование";
 "graph.dossier.activity" = "Вид деятельности";
