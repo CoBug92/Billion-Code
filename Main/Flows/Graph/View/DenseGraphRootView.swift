@@ -4,6 +4,7 @@ struct DenseGraphRootView: View {
     @State private var viewModel: DenseGraphViewModel
     @State private var panelDetent: DenseDossierDetent
     @State private var isDossierPresented: Bool
+    @State private var didFocusInitialSelection = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -29,6 +30,9 @@ struct DenseGraphRootView: View {
                 }
                 .onChange(of: viewModel.selectedNodeID, initial: true) { previousID, selectedID in
                     selectionDidChange(from: previousID, to: selectedID)
+                }
+                .onAppear {
+                    focusInitialSelectionIfNeeded(geometry: geometry)
                 }
         }
     }
@@ -121,6 +125,16 @@ private extension DenseGraphRootView {
             y: geometry.safeAreaInsets.top,
             width: geometry.size.width,
             height: max(panelTop - geometry.safeAreaInsets.top, .zero)
+        )
+    }
+
+    func focusInitialSelectionIfNeeded(geometry: GeometryProxy) {
+        guard !didFocusInitialSelection, let selectedNodeID = viewModel.selectedNodeID else { return }
+        didFocusInitialSelection = true
+        viewModel.focus(
+            on: selectedNodeID,
+            viewport: geometry.size,
+            visibleGraphFrame: visibleGraphFrame(geometry: geometry)
         )
     }
 }

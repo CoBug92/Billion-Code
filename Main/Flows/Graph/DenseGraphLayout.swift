@@ -222,12 +222,12 @@ private extension Double {
     static let attraction = 0.016
     static let epsilon = 0.001
     static let familyEdgeLength = 1_700.0
-    static let gravity = 0.003
+    static let gravity = 0.0012
     static let maximumMovement = 95.0
     static let minimumDistanceSquared = 10_000.0
     static let minimumMovement = 4.0
     static let minimumNodeDistance = 720.0
-    static let normalizedSide = 8_000.0
+    static let normalizedSide = 9_200.0
     static let repulsion = 64_000_000.0
     static let worldCenter = 5_000.0
 }

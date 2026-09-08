@@ -90,6 +90,10 @@ struct GraphCamera: Equatable, Sendable {
         scale = (scale * factor).clamped(to: .minimumGraphScale ... .maximumGraphScale)
     }
 
+    mutating func setScale(_ scale: Double) {
+        self.scale = scale.clamped(to: .minimumGraphScale ... .maximumGraphScale)
+    }
+
     mutating func fit(
         points: [GraphPoint],
         viewport: CGSize,

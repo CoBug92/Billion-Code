@@ -135,9 +135,9 @@ final class DenseGraphViewModel {
     private func navigate(to id: GraphNode.ID, focus: NavigationFocus?) {
         guard
             let node = nodesByID[id],
-            isNodeKindVisible(node.kind),
             selectedNodeID != id
         else { return }
+        hiddenNodeKinds.remove(node.kind)
         exitLocalFocus()
         if let selectedNodeID {
             navigationHistory.append(NavigationEntry(nodeID: selectedNodeID, camera: camera))
@@ -152,8 +152,23 @@ final class DenseGraphViewModel {
 
     func navigateBack() {
         guard let previous = navigationHistory.popLast(), let node = nodesByID[previous.nodeID] else { return }
+        hiddenNodeKinds.remove(node.kind)
         applySelection(node)
         camera = previous.camera
+    }
+
+    func selectDailyPerson(on date: Date = .now, calendar: Calendar = .current) {
+        guard selectedNodeID == nil else { return }
+        let people = graph.nodes
+            .filter { $0.kind == .person }
+            .sorted { $0.id < $1.id }
+        guard !people.isEmpty else { return }
+
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        let seed = "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
+        let person = people[Int(stableHash(seed) % UInt64(people.count))]
+        applySelection(person)
+        focus(on: person.id)
     }
 
     private func applySelection(_ node: GraphNode) {
@@ -233,6 +248,7 @@ final class DenseGraphViewModel {
 
     func panCamera(from initialCamera: GraphCamera, by translation: CGSize) {
         var updatedCamera = initialCamera
+        updatedCamera.setScale(camera.scale)
         let ranges = cameraPanRanges
         updatedCamera.pan(
             by: translation,
@@ -428,6 +444,12 @@ private extension DenseGraphViewModel {
         let viewport: CGSize
         let screenPoint: CGPoint
     }
+
+    func stableHash(_ value: String) -> UInt64 {
+        value.utf8.reduce(UInt64.fnvOffset) { partial, byte in
+            (partial ^ UInt64(byte)) &* UInt64.fnvPrime
+        }
+    }
 }
 
 private extension Double {
@@ -438,4 +460,9 @@ private extension Double {
 
 private extension CGFloat {
     static let localFocusFitPadding = 48.0
+}
+
+private extension UInt64 {
+    static let fnvOffset: UInt64 = 14_695_981_039_346_656_037
+    static let fnvPrime: UInt64 = 1_099_511_628_211
 }

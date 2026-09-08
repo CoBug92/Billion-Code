@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Testing
 @testable import BillionCode
 
@@ -68,6 +69,25 @@ struct DenseGraphViewModelTests {
         #expect(!viewModel.canNavigateBack)
     }
 
+    @Test("Daily person selection is stable per day and not fixed to Elon Musk")
+    func dailyPersonSelection() {
+        let calendar = Calendar(identifier: .gregorian)
+        let today = DateComponents(calendar: calendar, year: 2026, month: 9, day: 8).date!
+        let tomorrow = DateComponents(calendar: calendar, year: 2026, month: 9, day: 9).date!
+        let first = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        let second = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        let nextDay = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+
+        first.selectDailyPerson(on: today, calendar: calendar)
+        second.selectDailyPerson(on: today, calendar: calendar)
+        nextDay.selectDailyPerson(on: tomorrow, calendar: calendar)
+
+        #expect(first.selectedNodeID == second.selectedNodeID)
+        #expect(first.selectedNode?.kind == .person)
+        #expect(nextDay.selectedNode?.kind == .person)
+        #expect(first.selectedNodeID != "person:elon-musk")
+    }
+
     @Test("Dossier navigation keeps the selected node above the compact panel")
     func dossierNavigationFocusesVisibleGraphArea() {
         let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
@@ -87,6 +107,18 @@ struct DenseGraphViewModelTests {
         }
         let selectedNodeScreenPoint = viewModel.camera.screenPoint(for: selectedNode.position, viewport: viewport)
         #expect(visibleGraphFrame.contains(selectedNodeScreenPoint))
+    }
+
+    @Test("Dossier navigation reveals hidden node kinds")
+    func dossierNavigationRevealsHiddenKinds() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        viewModel.selectNode(id: "person:elon-musk")
+        viewModel.setNodeKind(.organization, isVisible: false)
+
+        viewModel.navigate(to: "organization:tesla")
+
+        #expect(viewModel.selectedNodeID == "organization:tesla")
+        #expect(viewModel.isNodeKindVisible(.organization))
     }
 
     @Test("Direct graph selection starts a new exploration path")
@@ -130,6 +162,20 @@ struct DenseGraphViewModelTests {
         #expect(frame.edges.allSatisfy { edge in
             visibleNodeIDs.contains(edge.sourceID) || visibleNodeIDs.contains(edge.targetID)
         })
+    }
+
+    @Test("Panning during magnification preserves the current zoom")
+    func panPreservesCurrentZoom() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        let initialCamera = viewModel.camera
+        var zoomedCamera = initialCamera
+        zoomedCamera.zoom(by: 2)
+        viewModel.updateCamera(zoomedCamera)
+
+        viewModel.panCamera(from: initialCamera, by: CGSize(width: 80, height: -40))
+
+        #expect(viewModel.camera.scale == zoomedCamera.scale)
+        #expect(viewModel.camera.center != initialCamera.center)
     }
 
     @Test("Local focus keeps its anchor and isolates the selected neighborhood")

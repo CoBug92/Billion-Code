@@ -314,7 +314,9 @@ private extension DenseGraphSceneView {
                 if magnifyStartCamera == nil {
                     magnifyStartCamera = viewModel.camera
                 }
-                guard var camera = magnifyStartCamera else { return }
+                guard let magnifyStartCamera else { return }
+                var camera = viewModel.camera
+                camera.setScale(magnifyStartCamera.scale)
                 camera.zoom(by: value.magnification)
                 viewModel.updateCamera(camera)
             }
