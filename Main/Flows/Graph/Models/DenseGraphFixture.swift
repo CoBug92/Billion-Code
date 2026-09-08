@@ -993,6 +993,363 @@ private extension DenseGraphFixture {
                 .study("mit", "MIT", "1970–1974", "ScD, химическая инженерия"),
                 .work("moderna", "Moderna", "2010–н.в.", "сооснователь")
             ]
+        ),
+        DenseGraphProfile(
+            id: "person:jim-walton",
+            name: "Джим Уолтон",
+            affiliations: [
+                .study("arkansas", "University of Arkansas", "1965–1971", "BA, маркетинг"),
+                .work("walmart", "Walmart", "1972–н.в.", "наследник / член семьи основателей"),
+                .work("arvest", "Arvest Bank", "1975–н.в.", "председатель / владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:lukas-walton",
+            name: "Лукас Уолтон",
+            affiliations: [
+                .study("colorado-college", "Colorado College", "2004–2008", "BA, экологически устойчивый бизнес"),
+                .work("walmart", "Walmart", "2005–н.в.", "наследник"),
+                .work("builders-vision", "Builders Vision", "2021–н.в.", "основатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:charles-koch",
+            name: "Чарльз Кох",
+            affiliations: [
+                .study("mit", "MIT", "1955–1960", "BS/MS, инженерия"),
+                .work("arthur-d-little", "Arthur D. Little", "1961–1963", "консультант"),
+                .work("koch-industries", "Koch Industries", "1967–н.в.", "председатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:julia-koch",
+            name: "Джулия Кох",
+            affiliations: [
+                .study("central-arkansas", "University of Central Arkansas", "1980–1984", "BA, образование"),
+                .work("koch-industries", "Koch Industries", "2019–н.в.", "наследница / акционер"),
+                .work("julia-koch-foundation", "Julia Koch Family Foundation", "2022–н.в.", "президент")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:chase-koch",
+            name: "Чейз Кох",
+            affiliations: [
+                .study("texas-am", "Texas A&M University", "1995–2000", "BBA, маркетинг"),
+                .work("koch-industries", "Koch Industries", "2003–н.в.", "executive vice president"),
+                .work("stand-together", "Stand Together", "2015–н.в.", "совет директоров")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:jacqueline-mars",
+            name: "Жаклин Марс",
+            affiliations: [
+                .study("bryn-mawr", "Bryn Mawr College", "1957–1961", "BA, антропология"),
+                .work("mars-inc", "Mars", "1982–н.в.", "руководитель пищевого направления / наследница")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:john-mars",
+            name: "Джон Марс",
+            affiliations: [
+                .study("yale", "Yale University", "1953–1957", "BA"),
+                .work("mars-inc", "Mars", "1959–н.в.", "наследник / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:abigail-johnson",
+            name: "Эбигейл Джонсон",
+            affiliations: [
+                .study("hobart-william-smith", "Hobart and William Smith Colleges", "1979–1984", "BA, история искусств"),
+                .study("harvard", "Harvard University", "1986–1988", "MBA"),
+                .work("fidelity", "Fidelity Investments", "1988–н.в.", "председатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:edward-johnson-iii",
+            name: "Эдвард Джонсон III",
+            affiliations: [
+                .study("harvard", "Harvard University", "1948–1954", "BA"),
+                .work("fidelity", "Fidelity Investments", "1957–2014", "CEO / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:phil-knight",
+            name: "Фил Найт",
+            affiliations: [
+                .study("oregon", "University of Oregon", "1955–1959", "BS, журналистика"),
+                .study("stanford", "Stanford University", "1960–1962", "MBA"),
+                .work("blue-ribbon-sports", "Blue Ribbon Sports", "1964–1971", "сооснователь"),
+                .work("nike", "Nike", "1971–н.в.", "сооснователь / председатель emeritus")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:travis-knight",
+            name: "Трэвис Найт",
+            affiliations: [
+                .study("portland-state", "Portland State University", "1991–1998", "BA, социальные науки"),
+                .work("nike", "Nike", "2004–н.в.", "член совета директоров"),
+                .work("laika", "Laika", "2009–н.в.", "CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:miriam-adelson",
+            name: "Мириам Адельсон",
+            affiliations: [
+                .study("hebrew-university", "Hebrew University of Jerusalem", "1964–1971", "BS / MD"),
+                .work("adelson-clinic", "Adelson Clinic", "1993–н.в.", "основатель"),
+                .work("las-vegas-sands", "Las Vegas Sands", "2021–н.в.", "мажоритарный акционер")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:sheldon-adelson",
+            name: "Шелдон Адельсон",
+            affiliations: [
+                .study("ccny", "City College of New York", "1951–1953", "финансы · не окончил"),
+                .work("comdex", "COMDEX", "1979–1995", "сооснователь"),
+                .work("las-vegas-sands", "Las Vegas Sands", "1988–2021", "основатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:thomas-peterffy",
+            name: "Томас Петерффи",
+            affiliations: [
+                .study("clarkson", "Clarkson University", "1965–1968", "инженерия · не окончил"),
+                .work("interactive-brokers", "Interactive Brokers", "1978–н.в.", "основатель / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:stephen-cohen",
+            name: "Стив Коэн",
+            affiliations: [
+                .study("wharton", "Wharton School", "1974–1978", "BS, экономика"),
+                .work("gruenthal", "Gruntal & Co.", "1978–1992", "трейдер"),
+                .work("sac-capital", "SAC Capital", "1992–2016", "основатель"),
+                .work("point72", "Point72", "2014–н.в.", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:ray-dalio",
+            name: "Рэй Далио",
+            affiliations: [
+                .study("long-island", "Long Island University", "1967–1971", "BS, финансы"),
+                .study("harvard", "Harvard University", "1971–1973", "MBA"),
+                .work("bridgewater", "Bridgewater Associates", "1975–н.в.", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:david-tepper",
+            name: "Дэвид Теппер",
+            affiliations: [
+                .study("pittsburgh", "University of Pittsburgh", "1974–1978", "BA, экономика"),
+                .study("cmu", "Carnegie Mellon University", "1980–1982", "MBA"),
+                .work("goldman-sachs", "Goldman Sachs", "1985–1992", "head trader"),
+                .work("appaloosa", "Appaloosa Management", "1993–н.в.", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:george-soros",
+            name: "Джордж Сорос",
+            affiliations: [
+                .study("lse", "London School of Economics", "1947–1952", "BSc / MSc"),
+                .work("soros-fund", "Soros Fund Management", "1970–н.в.", "основатель"),
+                .work("open-society", "Open Society Foundations", "1979–н.в.", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:jim-simons",
+            name: "Джим Саймонс",
+            affiliations: [
+                .study("mit", "MIT", "1955–1958", "BS, математика"),
+                .study("berkeley", "UC Berkeley", "1958–1961", "PhD, математика"),
+                .work("stony-brook", "Stony Brook University", "1968–1978", "заведующий кафедрой математики"),
+                .work("renaissance", "Renaissance Technologies", "1982–2024", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:donald-bren",
+            name: "Дональд Брен",
+            affiliations: [
+                .study("washington", "University of Washington", "1950–1956", "BA, бизнес"),
+                .work("bren-company", "Bren Company", "1958–1977", "основатель"),
+                .work("irvine-company", "Irvine Company", "1977–н.в.", "председатель / владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:stephen-ross",
+            name: "Стивен Росс",
+            affiliations: [
+                .study("michigan", "University of Michigan", "1958–1962", "BBA"),
+                .study("wayne-state-law", "Wayne State University Law School", "1962–1965", "JD"),
+                .work("related-companies", "Related Companies", "1972–н.в.", "основатель / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:sam-zell",
+            name: "Сэм Зелл",
+            affiliations: [
+                .study("michigan", "University of Michigan", "1959–1966", "BA / JD"),
+                .work("equity-group", "Equity Group Investments", "1968–2023", "основатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:rupert-murdoch",
+            name: "Руперт Мёрдок",
+            affiliations: [
+                .study("oxford", "Oxford University", "1949–1952", "PPE"),
+                .work("news-corp", "News Corp", "1980–н.в.", "основатель / председатель emeritus"),
+                .work("fox", "Fox Corporation", "2019–н.в.", "председатель emeritus")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:lachlan-murdoch",
+            name: "Лаклан Мёрдок",
+            affiliations: [
+                .study("princeton", "Princeton University", "1989–1994", "BA, философия"),
+                .work("news-corp", "News Corp", "1994–н.в.", "сопредседатель"),
+                .work("fox", "Fox Corporation", "2019–н.в.", "CEO / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:michael-rubin",
+            name: "Майкл Рубин",
+            affiliations: [
+                .study("villanova", "Villanova University", "1990–1991", "бизнес · не окончил"),
+                .work("gsi-commerce", "GSI Commerce", "1998–2011", "основатель / CEO"),
+                .work("fanatics", "Fanatics", "2011–н.в.", "основатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:robert-kraft",
+            name: "Роберт Крафт",
+            affiliations: [
+                .study("columbia", "Columbia University", "1959–1963", "BA"),
+                .study("harvard", "Harvard University", "1963–1965", "MBA"),
+                .work("rand-whitney", "Rand-Whitney", "1968–н.в.", "председатель"),
+                .work("kraft-group", "Kraft Group", "1998–н.в.", "основатель / председатель"),
+                .work("new-england-patriots", "New England Patriots", "1994–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:jerry-jones",
+            name: "Джерри Джонс",
+            affiliations: [
+                .study("arkansas", "University of Arkansas", "1961–1965", "BS, бизнес"),
+                .work("jones-oil-land", "Jones Oil and Land Lease", "1971–н.в.", "основатель"),
+                .work("dallas-cowboys", "Dallas Cowboys", "1989–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:stanley-kroenke",
+            name: "Стэн Кронке",
+            affiliations: [
+                .study("missouri", "University of Missouri", "1965–1971", "BA / MBA"),
+                .work("kroenke-group", "Kroenke Group", "1983–н.в.", "основатель"),
+                .work("arsenal", "Arsenal FC", "2011–н.в.", "владелец"),
+                .work("la-rams", "Los Angeles Rams", "2010–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:ann-walton-kroenke",
+            name: "Энн Уолтон Кронке",
+            affiliations: [
+                .study("lincoln", "Lincoln University", "1966–1970", "BS, медсестринское дело"),
+                .work("walmart", "Walmart", "1995–н.в.", "наследница / акционер"),
+                .work("denver-nuggets", "Denver Nuggets", "2000–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:diane-hendricks",
+            name: "Дайан Хендрикс",
+            affiliations: [
+                .study("osseo-fairchild", "Osseo-Fairchild High School", "1963–1965", "среднее образование"),
+                .work("abc-supply", "ABC Supply", "1982–н.в.", "сооснователь / председатель")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:tom-gores",
+            name: "Том Горс",
+            affiliations: [
+                .study("michigan-state", "Michigan State University", "1982–1986", "BS, construction management"),
+                .work("platinum-equity", "Platinum Equity", "1995–н.в.", "основатель / CEO"),
+                .work("detroit-pistons", "Detroit Pistons", "2011–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:tilman-fertitta",
+            name: "Тилман Фертитта",
+            affiliations: [
+                .study("houston", "University of Houston", "1975–1978", "business administration"),
+                .work("landrys", "Landry’s", "1986–н.в.", "председатель / CEO"),
+                .work("houston-rockets", "Houston Rockets", "2017–н.в.", "владелец")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:robert-f-smith",
+            name: "Роберт Ф. Смит",
+            affiliations: [
+                .study("cornell", "Cornell University", "1981–1985", "BS, химическая инженерия"),
+                .study("columbia", "Columbia University", "1992–1994", "MBA"),
+                .work("goldman-sachs", "Goldman Sachs", "1994–2000", "tech investment banking"),
+                .work("vista-equity", "Vista Equity Partners", "2000–н.в.", "основатель / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:henry-kravis",
+            name: "Генри Кравис",
+            affiliations: [
+                .study("claremont-mckenna", "Claremont McKenna College", "1963–1967", "BA, экономика"),
+                .study("columbia", "Columbia University", "1967–1969", "MBA"),
+                .work("bear-stearns", "Bear Stearns", "1969–1976", "partner"),
+                .work("kkr", "KKR", "1976–н.в.", "сооснователь / co-executive chairman")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:george-roberts",
+            name: "Джордж Робертс",
+            affiliations: [
+                .study("claremont-mckenna", "Claremont McKenna College", "1962–1966", "BA"),
+                .study("uc-hastings", "UC Hastings College of the Law", "1966–1969", "JD"),
+                .work("bear-stearns", "Bear Stearns", "1969–1976", "partner"),
+                .work("kkr", "KKR", "1976–н.в.", "сооснователь / co-executive chairman")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:david-rubenstein",
+            name: "Дэвид Рубенстайн",
+            affiliations: [
+                .study("duke", "Duke University", "1966–1970", "BA"),
+                .study("uchicago-law", "University of Chicago Law School", "1970–1973", "JD"),
+                .work("white-house", "White House", "1977–1981", "domestic policy adviser"),
+                .work("carlyle", "Carlyle Group", "1987–н.в.", "сооснователь / co-chairman")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:marc-rowan",
+            name: "Марк Роуэн",
+            affiliations: [
+                .study("wharton", "Wharton School", "1979–1984", "BS/MBA"),
+                .work("drexel-burnham", "Drexel Burnham Lambert", "1984–1990", "M&A"),
+                .work("apollo-global", "Apollo Global Management", "1990–н.в.", "сооснователь / CEO")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:josh-kushner",
+            name: "Джош Кушнер",
+            affiliations: [
+                .study("harvard", "Harvard University", "2003–2011", "BA / MBA"),
+                .work("thrive-capital", "Thrive Capital", "2009–н.в.", "основатель / CEO"),
+                .work("oscar-health", "Oscar Health", "2012–н.в.", "сооснователь")
+            ]
+        ),
+        DenseGraphProfile(
+            id: "person:vlad-tenev",
+            name: "Влад Тенев",
+            affiliations: [
+                .study("stanford", "Stanford University", "2004–2008", "BS, математика"),
+                .study("ucla", "UCLA", "2008–2011", "PhD, математика · не окончил"),
+                .work("celeris", "Celeris", "2010–2011", "сооснователь"),
+                .work("robinhood", "Robinhood", "2013–н.в.", "сооснователь / CEO")
+            ]
         )
     ]
 }

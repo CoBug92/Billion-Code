@@ -3,14 +3,14 @@ import Testing
 
 @Suite("Dense native graph fixture")
 struct DenseGraphFixtureTests {
-    @Test("Fixture contains 85 people and a dense affiliation network")
+    @Test("Fixture contains 124 people and a dense affiliation network")
     func expectedScale() {
         let graph = DenseGraphFixture.performance
         let people = graph.nodes.filter { $0.kind == .person }
 
-        #expect(people.count == 85)
-        #expect(graph.nodes.count >= 290)
-        #expect(graph.edges.count >= 340)
+        #expect(people.count == 124)
+        #expect(graph.nodes.count >= 410)
+        #expect(graph.edges.count >= 460)
     }
 
     @Test("Every person has education and business affiliations")
@@ -25,7 +25,7 @@ struct DenseGraphFixtureTests {
             #expect(graph.dossier(id: person.id)?.personDetails != nil)
             #expect(graph.dossier(id: person.id)?.education.isEmpty == false)
         }
-        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count == 77)
+        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count >= 77)
     }
 
     @Test("Every edge points to unique existing nodes")

@@ -324,7 +324,27 @@ private extension DenseGraphDossierFactory {
             "person:lauren-powell-jobs": 13_000_000_000,
             "person:anne-wojcicki": 700_000_000, "person:brian-acton": 2_500_000_000,
             "person:jan-koum": 13_000_000_000, "person:noubar-afeyan": 1_900_000_000,
-            "person:robert-langer": 1_500_000_000
+            "person:robert-langer": 1_500_000_000,
+            "person:jim-walton": 128_000_000_000, "person:lukas-walton": 36_000_000_000,
+            "person:charles-koch": 67_000_000_000, "person:julia-koch": 74_000_000_000,
+            "person:chase-koch": 2_000_000_000, "person:jacqueline-mars": 42_000_000_000,
+            "person:john-mars": 42_000_000_000, "person:abigail-johnson": 35_000_000_000,
+            "person:edward-johnson-iii": 10_000_000_000, "person:phil-knight": 38_000_000_000,
+            "person:travis-knight": 2_000_000_000, "person:miriam-adelson": 32_000_000_000,
+            "person:sheldon-adelson": 35_000_000_000, "person:thomas-peterffy": 65_000_000_000,
+            "person:stephen-cohen": 21_000_000_000, "person:ray-dalio": 16_000_000_000,
+            "person:david-tepper": 20_000_000_000, "person:george-soros": 7_000_000_000,
+            "person:jim-simons": 31_000_000_000, "person:donald-bren": 18_000_000_000,
+            "person:stephen-ross": 10_000_000_000, "person:sam-zell": 5_000_000_000,
+            "person:rupert-murdoch": 21_000_000_000, "person:lachlan-murdoch": 3_000_000_000,
+            "person:michael-rubin": 11_000_000_000, "person:robert-kraft": 12_000_000_000,
+            "person:jerry-jones": 16_000_000_000, "person:stanley-kroenke": 19_000_000_000,
+            "person:ann-walton-kroenke": 12_000_000_000,
+            "person:diane-hendricks": 23_000_000_000, "person:tom-gores": 9_000_000_000,
+            "person:tilman-fertitta": 11_000_000_000, "person:robert-f-smith": 10_000_000_000,
+            "person:henry-kravis": 12_000_000_000, "person:george-roberts": 12_000_000_000,
+            "person:david-rubenstein": 4_000_000_000, "person:marc-rowan": 8_000_000_000,
+            "person:josh-kushner": 3_000_000_000, "person:vlad-tenev": 6_000_000_000
         ]
         let forbesIDs: Set<GraphNode.ID> = [
             "person:elon-musk", "person:peter-thiel", "person:reid-hoffman", "person:larry-page",
@@ -343,7 +363,17 @@ private extension DenseGraphDossierFactory {
             "person:safra-catz", "person:brian-armstrong", "person:fred-ehrsam",
             "person:drew-houston", "person:melinda-french-gates",
             "person:lauren-powell-jobs", "person:brian-acton", "person:jan-koum",
-            "person:noubar-afeyan", "person:robert-langer"
+            "person:noubar-afeyan", "person:robert-langer", "person:jim-walton",
+            "person:lukas-walton", "person:charles-koch", "person:julia-koch",
+            "person:jacqueline-mars", "person:john-mars", "person:abigail-johnson",
+            "person:phil-knight", "person:miriam-adelson", "person:thomas-peterffy",
+            "person:stephen-cohen", "person:ray-dalio", "person:david-tepper",
+            "person:donald-bren", "person:stephen-ross", "person:rupert-murdoch",
+            "person:michael-rubin", "person:robert-kraft", "person:jerry-jones",
+            "person:stanley-kroenke", "person:ann-walton-kroenke",
+            "person:diane-hendricks", "person:tom-gores", "person:tilman-fertitta",
+            "person:robert-f-smith", "person:henry-kravis", "person:george-roberts",
+            "person:marc-rowan", "person:josh-kushner", "person:vlad-tenev"
         ]
         var result = values.mapValues { amount in
             DossierWealth(
@@ -414,8 +444,42 @@ private extension DenseGraphDossierFactory {
             "person:lauren-powell-jobs": details(1963, 11, 6),
             "person:anne-wojcicki": details(1973, 7, 28), "person:brian-acton": details(1972, 2, 17),
             "person:jan-koum": details(1976, 2, 24), "person:noubar-afeyan": details(1962, 7, 25),
-            "person:robert-langer": details(1948, 8, 29)
+            "person:robert-langer": details(1948, 8, 29),
+            "person:jim-walton": details(1948, 6, 7), "person:lukas-walton": details(1986, 9, 22),
+            "person:charles-koch": details(1935, 11, 1), "person:julia-koch": details(1962, 4, 12),
+            "person:chase-koch": details(1977, 6, 15), "person:jacqueline-mars": details(1939, 10, 10),
+            "person:john-mars": details(1935, 10, 15), "person:abigail-johnson": details(1961, 12, 19),
+            "person:phil-knight": details(1938, 2, 24), "person:travis-knight": details(1973, 9, 13),
+            "person:miriam-adelson": details(1945, 10, 10), "person:thomas-peterffy": details(1944, 9, 30),
+            "person:stephen-cohen": details(1956, 6, 11), "person:ray-dalio": details(1949, 8, 8),
+            "person:david-tepper": details(1957, 9, 11), "person:george-soros": details(1930, 8, 12),
+            "person:donald-bren": details(1932, 5, 11), "person:stephen-ross": details(1940, 5, 10),
+            "person:rupert-murdoch": details(1931, 3, 11), "person:lachlan-murdoch": details(1971, 9, 8),
+            "person:michael-rubin": details(1972, 7, 21), "person:robert-kraft": details(1941, 6, 5),
+            "person:jerry-jones": details(1942, 10, 13), "person:stanley-kroenke": details(1947, 7, 29),
+            "person:ann-walton-kroenke": details(1948, 12, 18),
+            "person:diane-hendricks": details(1947, 3, 2), "person:tom-gores": details(1964, 7, 31),
+            "person:tilman-fertitta": details(1957, 6, 25), "person:robert-f-smith": details(1962, 12, 1),
+            "person:henry-kravis": details(1944, 1, 6), "person:george-roberts": details(1943, 10, 11),
+            "person:david-rubenstein": details(1949, 8, 11), "person:marc-rowan": details(1962, 8, 19),
+            "person:josh-kushner": details(1985, 6, 12), "person:vlad-tenev": details(1987, 2, 13)
         ]
+        values["person:edward-johnson-iii"] = DossierPersonDetails(
+            birthDate: .init(year: 1930, month: 6, day: 29),
+            ageReferenceDate: .init(year: 2022, month: 3, day: 23)
+        )
+        values["person:sheldon-adelson"] = DossierPersonDetails(
+            birthDate: .init(year: 1933, month: 8, day: 4),
+            ageReferenceDate: .init(year: 2021, month: 1, day: 11)
+        )
+        values["person:jim-simons"] = DossierPersonDetails(
+            birthDate: .init(year: 1938, month: 4, day: 25),
+            ageReferenceDate: .init(year: 2024, month: 5, day: 10)
+        )
+        values["person:sam-zell"] = DossierPersonDetails(
+            birthDate: .init(year: 1941, month: 9, day: 28),
+            ageReferenceDate: .init(year: 2023, month: 5, day: 18)
+        )
         values["person:paul-allen"] = DossierPersonDetails(
             birthDate: .init(year: 1953, month: 1, day: 21),
             ageReferenceDate: .init(year: 2018, month: 10, day: 15)
@@ -606,7 +670,64 @@ private extension DenseGraphDossierFactory {
         "organization:signal-foundation": "Некоммерческая инфраструктура приватных коммуникаций",
         "organization:perseptive-biosystems": "Биотехнологическое оборудование и аналитические системы",
         "organization:flagship-pioneering": "Создание и финансирование биотехнологических компаний",
-        "organization:moderna": "mRNA-терапии, вакцины и биотехнологии"
+        "organization:moderna": "mRNA-терапии, вакцины и биотехнологии",
+        "organization:arvest": "Региональный банкинг и финансовые услуги",
+        "organization:builders-vision": "Импакт-инвестиции, климат и устойчивые продовольственные системы",
+        "organization:arthur-d-little": "Управленческий и технологический консалтинг",
+        "organization:koch-industries": "Промышленный конгломерат, энергетика, химия и сырьевые цепочки",
+        "organization:julia-koch-foundation": "Семейная филантропия и грантовые программы",
+        "organization:stand-together": "Филантропическая сеть и общественные инициативы",
+        "organization:mars-inc": "Кондитерские изделия, корма для животных и семейный consumer goods-бизнес",
+        "organization:fidelity": "Управление активами, брокерские и пенсионные сервисы",
+        "organization:blue-ribbon-sports": "Дистрибуция спортивной обуви и ранний предшественник Nike",
+        "organization:nike": "Спортивная одежда, обувь и глобальный потребительский бренд",
+        "organization:laika": "Анимационная студия и производство stop-motion фильмов",
+        "organization:adelson-clinic": "Медицинские программы лечения зависимостей",
+        "organization:comdex": "Выставки компьютерной индустрии и технологические конференции",
+        "organization:las-vegas-sands": "Казино-курорты, гостиницы и развлекательная недвижимость",
+        "organization:interactive-brokers": "Электронный брокеридж и торговая инфраструктура",
+        "organization:gruenthal": "Брокерские услуги и торговля ценными бумагами",
+        "organization:sac-capital": "Хедж-фонд и активный трейдинг",
+        "organization:point72": "Управление активами и multi-strategy инвестиции",
+        "organization:bridgewater": "Макро-хедж-фонд и институциональное управление капиталом",
+        "organization:appaloosa": "Хедж-фонд и distressed investing",
+        "organization:soros-fund": "Инвестиционное управление и глобальные рынки",
+        "organization:open-society": "Филантропия, гражданские институты и правовые инициативы",
+        "organization:stony-brook": "Публичный исследовательский университет и математическая школа",
+        "organization:renaissance": "Количественные инвестиции и математические торговые модели",
+        "organization:bren-company": "Девелопмент и инвестиции в недвижимость",
+        "organization:irvine-company": "Девелопмент, офисная, жилая и торговая недвижимость",
+        "organization:related-companies": "Девелопмент, городская недвижимость и mixed-use проекты",
+        "organization:equity-group": "Инвестиции в недвижимость и частные компании",
+        "organization:news-corp": "Медиа, издательский бизнес и новостные активы",
+        "organization:fox": "Телевизионные сети, новости и спортивные медиа",
+        "organization:gsi-commerce": "Электронная коммерция и инфраструктура онлайн-ритейла",
+        "organization:fanatics": "Спортивный мерчандайзинг, коллекционные товары и betting-сервисы",
+        "organization:rand-whitney": "Упаковка, бумага и промышленное производство",
+        "organization:kraft-group": "Холдинг в упаковке, спорте, недвижимости и private equity",
+        "organization:new-england-patriots": "Профессиональный футбольный клуб NFL",
+        "organization:jones-oil-land": "Энергетика, нефть и земельные активы",
+        "organization:dallas-cowboys": "Профессиональный футбольный клуб NFL и спортивная медиаинфраструктура",
+        "organization:kroenke-group": "Девелопмент, торговая недвижимость и спортивные активы",
+        "organization:arsenal": "Профессиональный футбольный клуб Premier League",
+        "organization:la-rams": "Профессиональный футбольный клуб NFL",
+        "organization:denver-nuggets": "Профессиональный баскетбольный клуб NBA",
+        "organization:abc-supply": "Оптовая дистрибуция кровельных и строительных материалов",
+        "organization:platinum-equity": "Private equity и операционные преобразования компаний",
+        "organization:detroit-pistons": "Профессиональный баскетбольный клуб NBA",
+        "organization:landrys": "Рестораны, казино, гостиницы и развлекательный холдинг",
+        "organization:houston-rockets": "Профессиональный баскетбольный клуб NBA",
+        "organization:vista-equity": "Private equity в enterprise software",
+        "organization:bear-stearns": "Инвестиционный банк и рынки капитала",
+        "organization:kkr": "Private equity, кредитные стратегии и альтернативные инвестиции",
+        "organization:white-house": "Федеральная исполнительная администрация США",
+        "organization:carlyle": "Альтернативные инвестиции, private equity и real assets",
+        "organization:drexel-burnham": "Инвестиционный банк и рынок high-yield облигаций",
+        "organization:apollo-global": "Альтернативные инвестиции, private equity и private credit",
+        "organization:thrive-capital": "Венчурные инвестиции в интернет- и software-компании",
+        "organization:oscar-health": "Технологичная медицинская страховка",
+        "organization:celeris": "Финансовые технологии и торговое ПО",
+        "organization:robinhood": "Розничный брокеридж, финтех и потребительские инвестиции"
     ]
 
     static let foundationYears: [String: Int] = [
@@ -628,7 +749,22 @@ private extension DenseGraphDossierFactory {
         "organization:vmware": 1998, "organization:tsmc": 1987, "organization:coinbase": 2012,
         "organization:box": 2005, "organization:dropbox": 2007, "organization:moderna": 2010,
         "organization:yahoo": 1994, "organization:whatsapp": 2009, "organization:bumble": 2014,
-        "organization:23andme": 2006
+        "organization:23andme": 2006, "organization:koch-industries": 1940,
+        "organization:mars-inc": 1911, "organization:fidelity": 1946, "organization:nike": 1971,
+        "organization:las-vegas-sands": 1988, "organization:interactive-brokers": 1978,
+        "organization:point72": 2014, "organization:bridgewater": 1975,
+        "organization:renaissance": 1982, "organization:irvine-company": 1864,
+        "organization:related-companies": 1972, "organization:news-corp": 1980,
+        "organization:fox": 2019, "organization:fanatics": 1995, "organization:kraft-group": 1998,
+        "organization:new-england-patriots": 1959, "organization:dallas-cowboys": 1960,
+        "organization:arsenal": 1886, "organization:la-rams": 1936,
+        "organization:denver-nuggets": 1967, "organization:abc-supply": 1982,
+        "organization:platinum-equity": 1995, "organization:detroit-pistons": 1941,
+        "organization:landrys": 1980, "organization:houston-rockets": 1967,
+        "organization:vista-equity": 2000, "organization:kkr": 1976,
+        "organization:carlyle": 1987, "organization:apollo-global": 1990,
+        "organization:thrive-capital": 2009, "organization:oscar-health": 2012,
+        "organization:robinhood": 2013, "organization:builders-vision": 2021
     ]
 
     static let universityMetadata: [String: (type: String, location: String, operatingPeriod: String)] = [
@@ -693,7 +829,30 @@ private extension DenseGraphDossierFactory {
         "university:polytechnic-nyu": ("Инженерная школа", "Бруклин, Нью-Йорк, США", "1854"),
         "university:smu": ("Частный исследовательский университет", "Даллас, Техас, США", "1911"),
         "university:sjsu": ("Публичный университет", "Сан-Хосе, Калифорния, США", "1857"),
-        "university:mcgill": ("Публичный исследовательский университет", "Монреаль, Канада", "1821")
+        "university:mcgill": ("Публичный исследовательский университет", "Монреаль, Канада", "1821"),
+        "university:arkansas": ("Публичный исследовательский университет", "Фейетвилл, Арканзас, США", "1871"),
+        "university:colorado-college": ("Частный колледж свободных искусств", "Колорадо-Спрингс, Колорадо, США", "1874"),
+        "university:central-arkansas": ("Публичный университет", "Конвей, Арканзас, США", "1907"),
+        "university:texas-am": ("Публичный исследовательский университет", "Колледж-Стейшен, Техас, США", "1876"),
+        "university:bryn-mawr": ("Частный женский колледж свободных искусств", "Брин-Мар, Пенсильвания, США", "1885"),
+        "university:hobart-william-smith": ("Частные колледжи свободных искусств", "Женева, Нью-Йорк, США", "1822"),
+        "university:oregon": ("Публичный исследовательский университет", "Юджин, Орегон, США", "1876"),
+        "university:portland-state": ("Публичный исследовательский университет", "Портленд, Орегон, США", "1946"),
+        "university:hebrew-university": ("Публичный исследовательский университет", "Иерусалим, Израиль", "1918"),
+        "university:clarkson": ("Частный технологический университет", "Потсдам, Нью-Йорк, США", "1896"),
+        "university:long-island": ("Частный университет", "Бруквилл, Нью-Йорк, США", "1926"),
+        "university:pittsburgh": ("Публичный исследовательский университет", "Питтсбург, Пенсильвания, США", "1787"),
+        "university:lse": ("Публичный исследовательский университет", "Лондон, Великобритания", "1895"),
+        "university:washington": ("Публичный исследовательский университет", "Сиэтл, Вашингтон, США", "1861"),
+        "university:wayne-state-law": ("Юридическая школа", "Детройт, Мичиган, США", "1927"),
+        "university:villanova": ("Частный католический университет", "Вилланова, Пенсильвания, США", "1842"),
+        "university:lincoln": ("Публичный университет", "Джефферсон-Сити, Миссури, США", "1866"),
+        "university:osseo-fairchild": ("Средняя школа", "Оссео, Висконсин, США", "—"),
+        "university:michigan-state": ("Публичный исследовательский университет", "Ист-Лансинг, Мичиган, США", "1855"),
+        "university:claremont-mckenna": ("Частный колледж свободных искусств", "Клермонт, Калифорния, США", "1946"),
+        "university:uc-hastings": ("Юридический колледж", "Сан-Франциско, Калифорния, США", "1878"),
+        "university:uchicago-law": ("Юридическая школа", "Чикаго, Иллинойс, США", "1902"),
+        "university:houston": ("Публичный исследовательский университет", "Хьюстон, Техас, США", "1927")
     ]
 }
 
