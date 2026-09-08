@@ -6,8 +6,6 @@ struct PortraitPreviewView: View {
     let portrait: GraphNode.PortraitReference
     let onDismiss: () -> Void
 
-    private let portraitImage: Image?
-
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragOffset = CGSize.zero
     @State private var isPresented = false
@@ -21,7 +19,6 @@ struct PortraitPreviewView: View {
         self.personName = personName
         self.portrait = portrait
         self.onDismiss = onDismiss
-        portraitImage = Self.loadPortraitImage(resource: portrait.bundledResource)
     }
 
     var body: some View {
@@ -31,29 +28,25 @@ struct PortraitPreviewView: View {
                     .opacity(backgroundOpacity(containerSize: geometry.size))
                     .ignoresSafeArea()
 
-                if let image = portraitImage {
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: .imageCornerRadius,
-                                style: .continuous
-                            )
+                portraitContent
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: .imageCornerRadius,
+                            style: .continuous
                         )
-                        .shadow(
-                            color: .black.opacity(.imageShadowOpacity),
-                            radius: .imageShadowRadius,
-                            y: .imageShadowOffset
-                        )
-                        .padding(.horizontal, Margin.x8)
-                        .padding(.vertical, .imageVerticalInset)
-                        .offset(dragOffset)
-                        .scaleEffect(imageScale(containerSize: geometry.size))
-                        .opacity(isPresented ? 1 : .zero)
-                        .accessibilityLabel(L10n.Graph.Dossier.Portrait.label(personName))
-                        .accessibilityValue(portrait.accessibilityAttribution)
-                }
+                    )
+                    .shadow(
+                        color: .black.opacity(.imageShadowOpacity),
+                        radius: .imageShadowRadius,
+                        y: .imageShadowOffset
+                    )
+                    .padding(.horizontal, Margin.x8)
+                    .padding(.vertical, .imageVerticalInset)
+                    .offset(dragOffset)
+                    .scaleEffect(imageScale(containerSize: geometry.size))
+                    .opacity(isPresented ? 1 : .zero)
+                    .accessibilityLabel(L10n.Graph.Dossier.Portrait.label(personName))
+                    .accessibilityValue(portrait.accessibilityAttribution)
             }
             .overlay(alignment: .topTrailing) {
                 closeButton(topInset: geometry.safeAreaInsets.top)
@@ -73,6 +66,26 @@ struct PortraitPreviewView: View {
 // MARK: - Layout
 
 private extension PortraitPreviewView {
+    @ViewBuilder
+    var portraitContent: some View {
+        if let image = Self.loadPortraitImage(resource: portrait.bundledResource) {
+            image
+                .resizable()
+                .scaledToFit()
+        } else if let remoteURL = portrait.remoteURL {
+            AsyncImage(url: remoteURL) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } else {
+                    ProgressView()
+                        .tint(.white)
+                }
+            }
+        }
+    }
+
     func closeButton(topInset: CGFloat) -> some View {
         Button(action: dismissWithoutSwipe) {
             Image(systemName: AppSymbols.close)
@@ -101,8 +114,9 @@ private extension PortraitPreviewView {
             .accessibilityHidden(true)
     }
 
-    static func loadPortraitImage(resource: String) -> Image? {
+    static func loadPortraitImage(resource: String?) -> Image? {
         guard
+            let resource,
             let url = Bundle.main.url(
                 forResource: resource,
                 withExtension: nil

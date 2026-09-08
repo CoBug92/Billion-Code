@@ -18,8 +18,9 @@ struct AmericanBillionairesCatalog: Decodable, Sendable {
         people.map { person in
             DenseGraphProfile(
                 id: person.id,
-                name: person.name,
-                affiliations: person.affiliations
+                name: person.displayName,
+                affiliations: person.affiliations,
+                industryIDs: person.industries
             )
         }
     }
@@ -95,6 +96,8 @@ extension AmericanBillionairesCatalog {
         let id: GraphNode.ID
         let sourceURI: String
         let name: String
+        let nameRu: String?
+        let portraitURL: URL?
         let isAmericanBillionaire2026: Bool
         let annualRank: Int?
         let netWorthUSD: UInt64
@@ -110,6 +113,10 @@ extension AmericanBillionairesCatalog {
         let organizationTitle: String?
         let education: [Education]
         let relatedPeople: [RelatedPerson]
+
+        var displayName: String {
+            nameRu?.nonEmpty ?? name
+        }
 
         var affiliations: [DenseGraphAffiliation] {
             var result: [DenseGraphAffiliation] = []

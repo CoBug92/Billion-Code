@@ -17,8 +17,16 @@ struct DenseGraphSceneView: View {
             ZStack {
                 ZStack {
                     background
+                    if viewModel.usesOverviewRendering {
+                        DenseGraphOverviewView(viewModel: viewModel) { section in
+                            focus(
+                                on: section,
+                                viewport: geometry.size
+                            )
+                        }
+                        .transition(.opacity)
+                    }
                     edgeCanvas(edges: renderFrame.edges, viewport: geometry.size)
-
                     ForEach(renderFrame.nodes) { node in
                         DenseGraphNodeView(
                             node: node,
@@ -166,7 +174,7 @@ private extension DenseGraphSceneView {
     func controls(viewport: CGSize) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             search
-            filters
+            legend
             if viewModel.hasSelection {
                 DenseGraphFocusButton(isActive: viewModel.isLocalFocusActive) {
                     withAnimation(reduceMotion ? nil : .smooth(duration: .localFocusAnimationDuration)) {
@@ -249,11 +257,11 @@ private extension DenseGraphSceneView {
         }
     }
 
-    var filters: some View {
+    var legend: some View {
         HStack(spacing: 6) {
-            filterButton(kind: .person, title: "Люди", shape: .circle)
-            filterButton(kind: .organization, title: "Компании", shape: .diamond)
-            filterButton(kind: .university, title: "Вузы", shape: .triangle)
+            legendItem(kind: .person, title: "Люди", shape: .circle)
+            legendItem(kind: .organization, title: "Компании", shape: .diamond)
+            legendItem(kind: .university, title: "Вузы", shape: .triangle)
         }
         .font(.caption2)
         .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor.opacity(0.82))
@@ -263,28 +271,18 @@ private extension DenseGraphSceneView {
         .background(.ultraThinMaterial, in: Capsule())
     }
 
-    func filterButton(kind: GraphEntityKind, title: String, shape: DenseLegendShape) -> some View {
-        let isVisible = viewModel.isNodeKindVisible(kind)
-        return Button {
-            withAnimation(selectionAnimation) {
-                viewModel.setNodeKind(kind, isVisible: !isVisible)
-            }
-        } label: {
-            HStack(spacing: 4) {
-                shape.view(color: kind.denseGraphColor)
-                    .frame(width: 8, height: 8)
-                Text(title)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.65)
-                    .allowsTightening(true)
-            }
-            .frame(maxWidth: .infinity)
-            .opacity(isVisible ? 1 : 0.35)
+    func legendItem(kind: GraphEntityKind, title: String, shape: DenseLegendShape) -> some View {
+        HStack(spacing: 4) {
+            shape.view(color: kind.denseGraphColor)
+                .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
+            Text(title)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+                .allowsTightening(true)
         }
-        .buttonStyle(.plain)
-        .accessibilityValue(isVisible ? "Показано" : "Скрыто")
+        .frame(maxWidth: .infinity)
     }
-
 }
 
 // MARK: - Gestures
@@ -358,28 +356,22 @@ private extension DenseGraphSceneView {
         }
     }
 
+    func focus(on section: DenseGraphSection, viewport: CGSize) {
+        dismissSearch()
+        withAnimation(reduceMotion ? nil : .smooth(duration: .graphNavigationAnimationDuration)) {
+            viewModel.focus(
+                on: section,
+                viewport: viewport,
+                visibleGraphFrame: visibleGraphFrame ?? CGRect(origin: .zero, size: viewport)
+            )
+        }
+    }
+
     func dismissSearch() {
         isSearchFocused = false
     }
 }
 
-private enum DenseLegendShape {
-    case circle
-    case diamond
-    case triangle
-
-    @ViewBuilder
-    func view(color: Color) -> some View {
-        switch self {
-        case .circle:
-            Circle().fill(color)
-        case .diamond:
-            RoundedRectangle(cornerRadius: 1).fill(color).rotationEffect(.degrees(45))
-        case .triangle:
-            Image(systemName: "triangle.fill").resizable().foregroundStyle(color)
-        }
-    }
-}
 // MARK: - Constants
 
 private extension Double {

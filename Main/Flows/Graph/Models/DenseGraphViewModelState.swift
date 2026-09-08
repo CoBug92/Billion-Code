@@ -7,5 +7,6 @@ extension DenseGraphViewModel {
     struct NavigationEntry: Equatable, Sendable {
         let nodeID: GraphNode.ID
         let camera: GraphCamera
+        let focusedSectionID: DenseGraphSection.ID?
     }
 }

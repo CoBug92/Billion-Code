@@ -72,6 +72,8 @@ public enum L10n {
       public static let currentCompanies = L10n.tr("Localizable", "graph.dossier.current_companies", fallback: "Бизнес и активы")
       /// Образование
       public static let education = L10n.tr("Localizable", "graph.dossier.education", fallback: "Образование")
+      /// Отрасли
+      public static let industries = L10n.tr("Localizable", "graph.dossier.industries", fallback: "Отрасли")
       /// Открыть в графе: %@
       public static func openNode(_ p1: Any) -> String {
         return L10n.tr("Localizable", "graph.dossier.open_node", String(describing: p1), fallback: "Открыть в графе: %@")
@@ -220,6 +222,56 @@ public enum L10n {
       public static let local = L10n.tr("Localizable", "graph.focus.local", fallback: "Собрать локальный граф")
       /// Показать весь граф
       public static let showAll = L10n.tr("Localizable", "graph.focus.show_all", fallback: "Показать весь граф")
+    }
+    public enum Industry {
+      /// Аэрокосмос
+      public static let aerospace = L10n.tr("Localizable", "graph.industry.aerospace", fallback: "Аэрокосмос")
+      /// Автомобили
+      public static let automotive = L10n.tr("Localizable", "graph.industry.automotive", fallback: "Автомобили")
+      /// Строительство
+      public static let constructionEngineering = L10n.tr("Localizable", "graph.industry.construction_engineering", fallback: "Строительство")
+      /// Разные отрасли
+      public static let diversified = L10n.tr("Localizable", "graph.industry.diversified", fallback: "Разные отрасли")
+      /// Энергетика
+      public static let energy = L10n.tr("Localizable", "graph.industry.energy", fallback: "Энергетика")
+      /// Мода и розница
+      public static let fashionRetail = L10n.tr("Localizable", "graph.industry.fashion_retail", fallback: "Мода и розница")
+      /// Финансы и инвестиции
+      public static let financeInvestments = L10n.tr("Localizable", "graph.industry.finance_investments", fallback: "Финансы и инвестиции")
+      /// Еда и напитки
+      public static let foodBeverage = L10n.tr("Localizable", "graph.industry.food_beverage", fallback: "Еда и напитки")
+      /// Азартные игры
+      public static let gamblingCasinos = L10n.tr("Localizable", "graph.industry.gambling_casinos", fallback: "Азартные игры")
+      /// Здравоохранение
+      public static let healthcare = L10n.tr("Localizable", "graph.industry.healthcare", fallback: "Здравоохранение")
+      /// Логистика
+      public static let logistics = L10n.tr("Localizable", "graph.industry.logistics", fallback: "Логистика")
+      /// Производство
+      public static let manufacturing = L10n.tr("Localizable", "graph.industry.manufacturing", fallback: "Производство")
+      /// Медиа и развлечения
+      public static let mediaEntertainment = L10n.tr("Localizable", "graph.industry.media_entertainment", fallback: "Медиа и развлечения")
+      /// Металлы и добыча
+      public static let metalsMining = L10n.tr("Localizable", "graph.industry.metals_mining", fallback: "Металлы и добыча")
+      /// Другие сферы
+      public static let other = L10n.tr("Localizable", "graph.industry.other", fallback: "Другие сферы")
+      /// %d чел.
+      public static func peopleCount(_ p1: Int) -> String {
+        return L10n.tr("Localizable", "graph.industry.people_count", p1, fallback: "%d чел.")
+      }
+      /// Недвижимость
+      public static let realEstate = L10n.tr("Localizable", "graph.industry.real_estate", fallback: "Недвижимость")
+      /// Услуги
+      public static let service = L10n.tr("Localizable", "graph.industry.service", fallback: "Услуги")
+      /// Спорт
+      public static let sports = L10n.tr("Localizable", "graph.industry.sports", fallback: "Спорт")
+      /// Технологии
+      public static let technology = L10n.tr("Localizable", "graph.industry.technology", fallback: "Технологии")
+      /// Телеком
+      public static let telecom = L10n.tr("Localizable", "graph.industry.telecom", fallback: "Телеком")
+      /// Открыть отрасль %@, людей: %d
+      public static func zoomHint(_ p1: Any, _ p2: Int) -> String {
+        return L10n.tr("Localizable", "graph.industry.zoom_hint", String(describing: p1), p2, fallback: "Открыть отрасль %@, людей: %d")
+      }
     }
     public enum Node {
       /// Выбрать узел и показать его связи

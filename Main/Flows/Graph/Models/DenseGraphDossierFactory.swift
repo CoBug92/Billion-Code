@@ -1,7 +1,11 @@
 import Foundation
 
 enum DenseGraphDossierFactory {
-    static func make(nodes: [GraphNode], edges: [DenseGraphEdge]) -> [GraphNode.ID: EntityDossier] {
+    static func make(
+        nodes: [GraphNode],
+        edges: [DenseGraphEdge],
+        industryNamesByPersonID: [GraphNode.ID: [String]] = [:]
+    ) -> [GraphNode.ID: EntityDossier] {
         let nodesByID = Dictionary(uniqueKeysWithValues: nodes.map { ($0.id, $0) })
         return Dictionary(uniqueKeysWithValues: nodes.map { node in
             let connected = edges.filter { $0.connects(node.id) }
@@ -19,7 +23,14 @@ enum DenseGraphDossierFactory {
                     source: edge.kind == .association ? forbesSource : nil
                 )
             }
-            return (node.id, dossier(for: node, links: links))
+            return (
+                node.id,
+                dossier(
+                    for: node,
+                    links: links,
+                    industryNames: industryNamesByPersonID[node.id, default: []]
+                )
+            )
         })
     }
 }
@@ -49,10 +60,14 @@ private extension DenseGraphDossierFactory {
         url: nil
     )
 
-    static func dossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
+    static func dossier(
+        for node: GraphNode,
+        links: [DossierEntityLink],
+        industryNames: [String]
+    ) -> EntityDossier {
         switch node.kind {
         case .person:
-            personDossier(for: node, links: links)
+            personDossier(for: node, links: links, industryNames: industryNames)
         case .organization:
             organizationDossier(for: node, links: links)
         case .university:
@@ -62,7 +77,11 @@ private extension DenseGraphDossierFactory {
         }
     }
 
-    static func personDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
+    static func personDossier(
+        for node: GraphNode,
+        links: [DossierEntityLink],
+        industryNames: [String]
+    ) -> EntityDossier {
         let work = links.filter { $0.entityID?.hasPrefix("organization:") == true }
         let education = links.filter { $0.entityID?.hasPrefix("university:") == true }
         let relatedPeople = links.filter { $0.entityID?.hasPrefix("person:") == true }
@@ -114,13 +133,13 @@ private extension DenseGraphDossierFactory {
                     )
                 )
             }
-            if !record.industries.isEmpty {
+            if !industryNames.isEmpty {
                 facts.append(
                     DossierFact(
                         id: "\(node.id):industry",
-                        label: "Отрасль",
-                        value: record.industries.joined(separator: ", "),
-                        source: record.isAmericanBillionaire2026 ? forbesAnnualSource : forbesSource
+                        label: "Отрасли в атласе",
+                        value: industryNames.joined(separator: " · "),
+                        source: nil
                     )
                 )
             }

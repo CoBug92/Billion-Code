@@ -1,3 +1,5 @@
+import Foundation
+
 struct GraphNode: Identifiable, Equatable, Sendable {
     let id: String
     let kind: GraphEntityKind
@@ -28,7 +30,18 @@ struct GraphNode: Identifiable, Equatable, Sendable {
 
 extension GraphNode {
     struct PortraitReference: Equatable, Sendable {
-        let bundledResource: String
+        let bundledResource: String?
+        let remoteURL: URL?
         let accessibilityAttribution: String
+
+        init(
+            bundledResource: String? = nil,
+            remoteURL: URL? = nil,
+            accessibilityAttribution: String
+        ) {
+            self.bundledResource = bundledResource
+            self.remoteURL = remoteURL
+            self.accessibilityAttribution = accessibilityAttribution
+        }
     }
 }

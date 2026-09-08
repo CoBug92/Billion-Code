@@ -22,6 +22,7 @@ enum AppSymbols {
     static let next = "chevron.right"
     static let previous = "chevron.left"
     static let keyboardDismiss = "keyboard.chevron.compact.down"
+    static let legendTriangle = "triangle.fill"
     static let close = "xmark"
     static let collapse = "chevron.down"
     static let expand = "chevron.up"

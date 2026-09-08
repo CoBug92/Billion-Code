@@ -12,26 +12,18 @@ struct PersonAvatarView: View {
                 image
                     .resizable()
                     .scaledToFill()
-            } else {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [accentColor, accentColor.opacity(.gradientEndOpacity)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    Text(initials)
-                        .font(
-                            .system(
-                                size: diameter * .monogramSizeRatio,
-                                weight: .bold,
-                                design: .rounded
-                            )
-                        )
-                        .foregroundStyle(.white)
+            } else if let remoteURL = node.portrait?.remoteURL {
+                AsyncImage(url: remoteURL) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        fallback
+                    }
                 }
+            } else {
+                fallback
             }
         }
         .frame(width: diameter, height: diameter)
@@ -46,6 +38,28 @@ struct PersonAvatarView: View {
             let image = UIImage(contentsOfFile: url.path)
         else { return nil }
         return Image(uiImage: image)
+    }
+
+    private var fallback: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [accentColor, accentColor.opacity(.gradientEndOpacity)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            Text(initials)
+                .font(
+                    .system(
+                        size: diameter * .monogramSizeRatio,
+                        weight: .bold,
+                        design: .rounded
+                    )
+                )
+                .foregroundStyle(.white)
+        }
     }
 
     private var initials: String {

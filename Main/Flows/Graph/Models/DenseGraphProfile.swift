@@ -2,6 +2,19 @@ struct DenseGraphProfile: Sendable {
     let id: String
     let name: String
     let affiliations: [DenseGraphAffiliation]
+    let industryIDs: [String]
+
+    init(
+        id: String,
+        name: String,
+        affiliations: [DenseGraphAffiliation],
+        industryIDs: [String] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.affiliations = affiliations
+        self.industryIDs = industryIDs
+    }
 }
 
 struct DenseGraphAffiliation: Sendable {

@@ -20,6 +20,48 @@ struct DenseGraphFixtureTests {
         #expect(graph.edges.count >= 4_000)
     }
 
+    @Test("Industry sections retain every person")
+    func industrySectionsCoverPeople() {
+        let graph = DenseGraphFixture.performance
+        let people = graph.nodes.filter { $0.kind == .person }
+
+        #expect(graph.sections.count == 20)
+        #expect(graph.personSectionIDs.count == people.count)
+        #expect(graph.sections.reduce(0) { $0 + $1.personCount } == graph.sectionMemberships.count)
+        #expect(graph.sectionMemberships.count >= people.count)
+        #expect(Set(graph.personSectionIDs.values.flatMap { $0 }) == Set(graph.sections.map(\.id)))
+        for person in people {
+            let sections = graph.sections(for: person.id)
+            #expect(!sections.isEmpty)
+            for section in sections {
+                guard let position = graph.membershipPosition(for: person.id, in: section.id) else {
+                    Issue.record("Person has no position in industry section: \(person.id), \(section.id)")
+                    continue
+                }
+                #expect(position.x >= section.region.minimumX)
+                #expect(position.x <= section.region.maximumX)
+                #expect(position.y >= section.region.minimumY)
+                #expect(position.y <= section.region.maximumY)
+            }
+        }
+    }
+
+    @Test("Diversified people belong to every relevant industry")
+    func diversifiedIndustryMemberships() {
+        let graph = DenseGraphFixture.performance
+        let muskIndustryIDs = Set(graph.personSectionIDs["person:elon-musk", default: []])
+
+        #expect(muskIndustryIDs.contains("automotive"))
+        #expect(muskIndustryIDs.contains("aerospace"))
+        #expect(muskIndustryIDs.contains("technology"))
+        #expect(graph.dossier(id: "person:elon-musk")?.facts.contains { fact in
+            fact.id.hasSuffix(":industry")
+                && fact.value.contains("Автомобили")
+                && fact.value.contains("Аэрокосмос")
+                && fact.value.contains("Технологии")
+        } == true)
+    }
+
     @Test("Annual billionaire records expose sourced dossier data without invented education")
     func completePeople() {
         let graph = DenseGraphFixture.performance
@@ -39,7 +81,34 @@ struct DenseGraphFixtureTests {
                 #expect(edges.contains { $0.kind == .business })
             }
         }
-        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count >= 77)
+        let people = graph.nodes.filter { $0.kind == .person }
+        let portraitCount = people.filter { $0.portrait != nil }.count
+        #expect(portraitCount >= Int(Double(people.count) * 0.9))
+    }
+
+    @Test("People use Russian display names")
+    func russianDisplayNames() {
+        let people = DenseGraphFixture.performance.nodes.filter { $0.kind == .person }
+
+        #expect(people.allSatisfy { person in
+            let nameWithoutRomanNumerals = person.name.replacingOccurrences(
+                of: "\\b[IVXLCDM]+\\b",
+                with: "",
+                options: .regularExpression
+            )
+            return nameWithoutRomanNumerals.range(of: "[A-Za-z]", options: .regularExpression) == nil
+        })
+    }
+
+    @Test("Remote portraits preserve their source attribution")
+    func remotePortraitAttribution() {
+        let graph = DenseGraphFixture.performance
+
+        #expect(graph.node(id: "person:a-jayson-adair")?.portrait?.accessibilityAttribution == "Forbes")
+        #expect(
+            graph.node(id: "person:abigail-johnson")?.portrait?.accessibilityAttribution
+                == "Wikimedia Commons"
+        )
     }
 
     @Test("Imported related-person references resolve inside the graph")

@@ -1,3 +1,5 @@
+import Foundation
+
 enum DenseGraphFixture {
     static let performance: DenseGraphData = makeGraph()
 }
@@ -14,7 +16,7 @@ private extension DenseGraphFixture {
                 name: profile.name,
                 shortName: shortName(profile.name),
                 summary: "",
-                portrait: portraitReference(for: profile.id),
+                portrait: portraitReference(for: profile),
                 position: GraphPoint(x: .zero, y: .zero)
             )
         }
@@ -58,7 +60,16 @@ private extension DenseGraphFixture {
             .values
             .sorted { $0.id < $1.id }
         let unpositioned = personNodes + entityNodes.values.sorted { $0.id < $1.id }
-        let positions = DenseGraphLayout().layout(nodes: unpositioned, edges: edges, layoutVersion: 1)
+        let personSectionIDs = Dictionary(uniqueKeysWithValues: activeProfiles.map { profile in
+            (profile.id, profile.industryIDs)
+        })
+        let sectionLayout = DenseGraphSectionLayout().layout(
+            nodes: unpositioned,
+            edges: edges,
+            personSectionIDs: personSectionIDs,
+            sectionTitles: industryTitles,
+            layoutVersion: 1
+        )
         let nodes = unpositioned.map { node in
             GraphNode(
                 id: node.id,
@@ -67,13 +78,22 @@ private extension DenseGraphFixture {
                 shortName: node.shortName,
                 summary: node.summary,
                 portrait: node.portrait,
-                position: positions[node.id] ?? GraphPoint(x: 5_000, y: 5_000)
+                position: sectionLayout.positions[node.id] ?? GraphPoint(x: 5_000, y: 5_000)
             )
         }
         return DenseGraphData(
             nodes: nodes,
             edges: edges,
-            dossiers: DenseGraphDossierFactory.make(nodes: nodes, edges: edges)
+            dossiers: DenseGraphDossierFactory.make(
+                nodes: nodes,
+                edges: edges,
+                industryNamesByPersonID: Dictionary(uniqueKeysWithValues: activeProfiles.map { profile in
+                    (profile.id, profile.industryIDs.compactMap { industryTitles[$0] })
+                })
+            ),
+            sections: sectionLayout.sections,
+            personSectionIDs: personSectionIDs,
+            sectionMemberships: sectionLayout.memberships
         )
     }
 
@@ -84,16 +104,96 @@ private extension DenseGraphFixture {
     }
 
     static var mergedProfiles: [DenseGraphProfile] {
+        let catalog = AmericanBillionairesCatalog.current
+        let catalogPeopleByID = catalog.peopleByID
         let curatedIDs = Set(profiles.map(\.id))
-        return profiles + AmericanBillionairesCatalog.current.profiles.filter { !curatedIDs.contains($0.id) }
+        let enrichedCuratedProfiles = profiles.map { profile in
+            DenseGraphProfile(
+                id: profile.id,
+                name: profile.name,
+                affiliations: profile.affiliations,
+                industryIDs: catalogPeopleByID[profile.id]?.industries ?? []
+            )
+        }
+        let merged = enrichedCuratedProfiles + catalog.profiles.filter { !curatedIDs.contains($0.id) }
+        return merged.map { profile in
+            DenseGraphProfile(
+                id: profile.id,
+                name: profile.name,
+                affiliations: profile.affiliations,
+                industryIDs: resolvedIndustryIDs(for: profile)
+            )
+        }
     }
 
-    static func portraitReference(for personID: GraphNode.ID) -> GraphNode.PortraitReference? {
-        guard let resource = portraitResources[personID] else { return nil }
+    static func resolvedIndustryIDs(for profile: DenseGraphProfile) -> [String] {
+        var result = profile.industryIDs
+        for affiliation in profile.affiliations {
+            result.append(contentsOf: supplementalIndustryIDsByOrganizationID[affiliation.entityID, default: []])
+        }
+        if result.isEmpty {
+            result.append(.otherIndustryID)
+        }
+        var seen = Set<String>()
+        return result.filter { seen.insert($0).inserted }
+    }
+
+    static var industryTitles: [String: String] {
+        [
+            "automotive": L10n.Graph.Industry.automotive,
+            "aerospace": L10n.Graph.Industry.aerospace,
+            "construction-engineering": L10n.Graph.Industry.constructionEngineering,
+            "diversified": L10n.Graph.Industry.diversified,
+            "energy": L10n.Graph.Industry.energy,
+            "fashion-retail": L10n.Graph.Industry.fashionRetail,
+            "finance-investments": L10n.Graph.Industry.financeInvestments,
+            "food-beverage": L10n.Graph.Industry.foodBeverage,
+            "gambling-casinos": L10n.Graph.Industry.gamblingCasinos,
+            "healthcare": L10n.Graph.Industry.healthcare,
+            "logistics": L10n.Graph.Industry.logistics,
+            "manufacturing": L10n.Graph.Industry.manufacturing,
+            "media-entertainment": L10n.Graph.Industry.mediaEntertainment,
+            "metals-mining": L10n.Graph.Industry.metalsMining,
+            "other": L10n.Graph.Industry.other,
+            "real-estate": L10n.Graph.Industry.realEstate,
+            "service": L10n.Graph.Industry.service,
+            "sports": L10n.Graph.Industry.sports,
+            "technology": L10n.Graph.Industry.technology,
+            "telecom": L10n.Graph.Industry.telecom
+        ]
+    }
+
+    static let supplementalIndustryIDsByOrganizationID: [GraphNode.ID: [String]] = [
+        "organization:blue-origin": ["aerospace"],
+        "organization:openai": ["technology"],
+        "organization:paypal": ["technology"],
+        "organization:rocket-lab": ["aerospace"],
+        "organization:sierra-space": ["aerospace"],
+        "organization:spacex": ["aerospace"],
+        "organization:tesla": ["automotive"],
+        "organization:virgin-galactic": ["aerospace"],
+        "organization:x": ["technology"],
+        "organization:xai": ["technology"],
+        "organization:zip2": ["technology"]
+    ]
+
+    static func portraitReference(for profile: DenseGraphProfile) -> GraphNode.PortraitReference? {
+        if let resource = portraitResources[profile.id] {
+            return GraphNode.PortraitReference(
+                bundledResource: resource,
+                accessibilityAttribution: "Wikimedia Commons"
+            )
+        }
+        guard let person = AmericanBillionairesCatalog.current.peopleByID[profile.id],
+              let remoteURL = person.portraitURL else { return nil }
         return GraphNode.PortraitReference(
-            bundledResource: resource,
-            accessibilityAttribution: "Wikimedia Commons"
+            remoteURL: remoteURL,
+            accessibilityAttribution: portraitAttribution(for: remoteURL)
         )
+    }
+
+    static func portraitAttribution(for url: URL) -> String {
+        url.host()?.contains("wikimedia.org") == true ? "Wikimedia Commons" : "Forbes"
     }
 
     static let portraitResources: [GraphNode.ID: String] = [
@@ -139,6 +239,10 @@ private extension DenseGraphFixture {
         "person:warren-buffett": "warren-buffett.jpg",
         "person:whitney-wolfe-herd": "whitney-wolfe-herd.jpg"
     ]
+}
+
+private extension String {
+    static let otherIndustryID = "other"
 }
 
 // MARK: - Profiles

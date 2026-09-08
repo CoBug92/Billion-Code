@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+
+import concurrent.futures
+import html
+import json
+import pathlib
+import re
+import sys
+import time
+import urllib.parse
+import urllib.error
+import urllib.request
+
+
+CATALOG_PATH = pathlib.Path("Main/Resources/Content/american-billionaires-2026.json")
+USER_AGENT = "BillionCode-local-prototype/1.0 (portrait and localization import)"
+WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
+FORBES_PROFILE = "https://www.forbes.com/profile/{source_uri}/"
+REQUEST_TIMEOUT = 20
+PAGE_BATCH_SIZE = 40
+WORKER_COUNT = 16
+
+
+def request_json(endpoint, parameters):
+    url = endpoint + "?" + urllib.parse.urlencode(parameters)
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code != 429 or attempt == 4:
+                raise
+            time.sleep(5 * (attempt + 1))
+    raise RuntimeError("Request retry loop exited unexpectedly")
+
+
+def wikipedia_metadata(people):
+    result = {}
+    for offset in range(0, len(people), PAGE_BATCH_SIZE):
+        batch = people[offset:offset + PAGE_BATCH_SIZE]
+        names = [person["name"] for person in batch]
+        payload = request_json(
+            WIKIPEDIA_API,
+            {
+                "action": "query",
+                "format": "json",
+                "redirects": "1",
+                "prop": "pageimages|pageprops|langlinks",
+                "piprop": "thumbnail",
+                "pithumbsize": "416",
+                "ppprop": "wikibase_item",
+                "lllang": "ru",
+                "lllimit": "1",
+                "titles": "|".join(names),
+            },
+        )
+        query = payload.get("query", {})
+        aliases = {item["from"]: item["to"] for item in query.get("normalized", [])}
+        aliases.update({item["from"]: item["to"] for item in query.get("redirects", [])})
+        pages = {page.get("title"): page for page in query.get("pages", {}).values()}
+        for person in batch:
+            title = person["name"]
+            for _ in range(2):
+                title = aliases.get(title, title)
+            page = pages.get(title)
+            if not page or "missing" in page:
+                continue
+            result[person["id"]] = {
+                "nameRu": russian_page_title(page),
+                "portraitURL": page.get("thumbnail", {}).get("source"),
+                "wikidataID": page.get("pageprops", {}).get("wikibase_item"),
+            }
+        print(f"Wikipedia: {min(offset + PAGE_BATCH_SIZE, len(people))}/{len(people)}", file=sys.stderr)
+        time.sleep(1)
+    return result
+
+
+def russian_page_title(page):
+    links = page.get("langlinks", [])
+    if not links:
+        return None
+    title = links[0].get("*")
+    return re.sub(r"\s+\([^()]+\)$", "", title) if title else None
+
+
+def wikidata_labels(metadata):
+    ids = [item["wikidataID"] for item in metadata.values() if item.get("wikidataID")]
+    labels = {}
+    for offset in range(0, len(ids), PAGE_BATCH_SIZE):
+        batch = ids[offset:offset + PAGE_BATCH_SIZE]
+        payload = request_json(
+            WIKIDATA_API,
+            {
+                "action": "wbgetentities",
+                "format": "json",
+                "props": "labels",
+                "languages": "ru",
+                "ids": "|".join(batch),
+            },
+        )
+        for entity_id, entity in payload.get("entities", {}).items():
+            value = entity.get("labels", {}).get("ru", {}).get("value")
+            if value:
+                labels[entity_id] = value
+    return labels
+
+
+def forbes_portrait(person):
+    request = urllib.request.Request(
+        FORBES_PROFILE.format(source_uri=person["sourceURI"]),
+        headers={"User-Agent": USER_AGENT},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+            source = response.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return person["id"], None
+    patterns = [
+        r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, source, flags=re.IGNORECASE)
+        if match:
+            url = html.unescape(match.group(1))
+            if "imageio.forbes.com" in url:
+                return person["id"], url
+    return person["id"], None
+
+
+def add_forbes_portraits(people, metadata):
+    missing = [person for person in people if not metadata.get(person["id"], {}).get("portraitURL")]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKER_COUNT) as executor:
+        futures = [executor.submit(forbes_portrait, person) for person in missing]
+        for index, future in enumerate(concurrent.futures.as_completed(futures), start=1):
+            person_id, url = future.result()
+            if url:
+                metadata.setdefault(person_id, {})["portraitURL"] = url
+            if index % 50 == 0:
+                print(f"Forbes: {index}/{len(missing)}", file=sys.stderr)
+
+
+def transliterate_name(value):
+    has_family_suffix = bool(re.search(r"\s*&\s*family\s*$", value, flags=re.IGNORECASE))
+    value = re.sub(r"\s*&\s*family\s*$", "", value, flags=re.IGNORECASE)
+    words = re.findall(r"[A-Za-z]+|[^A-Za-z]+", value)
+    result = "".join(transliterate_word(word) if word.isalpha() else word for word in words)
+    return result + (" и семья" if has_family_suffix else "")
+
+
+def transliterate_word(word):
+    initials = {
+        "A": "А", "B": "Б", "C": "К", "D": "Д", "E": "Э", "F": "Ф", "G": "Г",
+        "H": "Х", "I": "И", "J": "Дж", "K": "К", "L": "Л", "M": "М", "N": "Н",
+        "O": "О", "P": "П", "Q": "К", "R": "Р", "S": "С", "T": "Т", "U": "У",
+        "V": "В", "W": "У", "X": "Кс", "Y": "Й", "Z": "З",
+    }
+    if re.fullmatch(r"[IVXLCDM]+", word):
+        return word
+    if len(word) == 1:
+        return initials.get(word.upper(), word)
+    lower = word.lower()
+    groups = {
+        "shch": "щ", "tsch": "ч", "sch": "ш", "dge": "дж", "tch": "ч",
+        "ch": "ч", "sh": "ш", "zh": "ж", "th": "т", "ph": "ф", "kh": "х",
+        "ck": "к", "qu": "кв", "wh": "у", "wr": "р", "ee": "и", "oo": "у",
+        "ay": "эй", "ey": "эй", "oy": "ой", "ai": "эй", "ou": "ау",
+    }
+    letters = {
+        "a": "а", "b": "б", "d": "д", "e": "е", "f": "ф", "h": "х",
+        "i": "и", "j": "дж", "k": "к", "l": "л", "m": "м", "n": "н",
+        "o": "о", "p": "п", "q": "к", "r": "р", "s": "с", "t": "т",
+        "u": "у", "v": "в", "w": "у", "x": "кс", "y": "и", "z": "з",
+    }
+    result = []
+    index = 0
+    while index < len(lower):
+        group = next((item for item in groups if lower.startswith(item, index)), None)
+        if group:
+            result.append(groups[group])
+            index += len(group)
+            continue
+        character = lower[index]
+        if character == "c":
+            result.append("с" if index + 1 < len(lower) and lower[index + 1] in "eiy" else "к")
+        elif character == "g":
+            result.append("дж" if index + 1 < len(lower) and lower[index + 1] in "eiy" else "г")
+        elif character == "e" and index == 0:
+            result.append("э")
+        elif character == "y" and index == 0:
+            result.append("й")
+        else:
+            result.append(letters.get(character, character))
+        index += 1
+    transliterated = "".join(result)
+    return transliterated.capitalize() if word[0].isupper() else transliterated
+
+
+def improve_transliteration(value):
+    replacements = {
+        "Андреу": "Эндрю", "Арчие": "Арчи", "Брад": "Брэд", "Джамес": "Джеймс",
+        "Джое": "Джо", "Джордже": "Джордж", "Джеордже": "Джордж", "Джохн": "Джон",
+        "Джохнни": "Джонни", "Дуке": "Дюк", "Лоурен": "Лорен", "Мичаел": "Майкл",
+        "Мике": "Майк", "Хенри": "Генри", "Чрис": "Крис", "Чристиан": "Кристиан",
+        "Чристофер": "Кристофер", "Ии": "II", "Иии": "III", "Ив": "IV",
+    }
+    result = value
+    for source, target in replacements.items():
+        result = re.sub(rf"(?<!\w){re.escape(source)}(?!\w)", target, result)
+    return result
+
+
+def main():
+    payload = json.loads(CATALOG_PATH.read_text())
+    people = payload["people"]
+    if "--repair" in sys.argv:
+        repair_existing_metadata(people)
+        CATALOG_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+        return
+    metadata = wikipedia_metadata(people)
+    labels = wikidata_labels(metadata)
+    for item in metadata.values():
+        if not item.get("nameRu") and item.get("wikidataID") in labels:
+            item["nameRu"] = labels[item["wikidataID"]]
+    add_forbes_portraits(people, metadata)
+
+    localized_count = 0
+    portrait_count = 0
+    for person in people:
+        item = metadata.get(person["id"], {})
+        localized_name = item.get("nameRu")
+        if not localized_name or re.search(r"[A-Za-z]", localized_name):
+            localized_name = transliterate_name(person["name"])
+        if re.search(r"\s*&\s*family\s*$", person["name"], flags=re.IGNORECASE):
+            localized_name = re.sub(
+                r"\s+(?:&\s*фамили|и семья).*$",
+                "",
+                localized_name,
+                flags=re.IGNORECASE,
+            ) + " и семья"
+        person["nameRu"] = improve_transliteration(localized_name)
+        portrait_url = item.get("portraitURL")
+        if portrait_url:
+            person["portraitURL"] = portrait_url
+            portrait_count += 1
+        localized_count += 1
+
+    CATALOG_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+    print(f"Localized {localized_count} names; added {portrait_count} remote portraits")
+
+
+def repair_existing_metadata(people):
+    invalid = [person for person in people if re.search(r"[A-Za-z]", person.get("nameRu", ""))]
+    replacements = dict(forbes_portrait(person) for person in invalid)
+    for person in people:
+        if person in invalid:
+            person["nameRu"] = improve_transliteration(transliterate_name(person["name"]))
+            if replacements.get(person["id"]):
+                person["portraitURL"] = replacements[person["id"]]
+        elif re.search(r"\s*&\s*family\s*$", person["name"], flags=re.IGNORECASE):
+            localized_name = re.sub(
+                r"\s+(?:&\s*фамили|и семья).*$",
+                "",
+                person["nameRu"],
+                flags=re.IGNORECASE,
+            )
+            person["nameRu"] = improve_transliteration(localized_name + " и семья")
+        else:
+            person["nameRu"] = improve_transliteration(person["nameRu"])
+
+
+if __name__ == "__main__":
+    main()

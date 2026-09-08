@@ -20,9 +20,12 @@ final class DenseGraphViewModel {
     private(set) var navigationHistory: [NavigationEntry] = []
     private(set) var hiddenNodeKinds = Set<GraphEntityKind>()
     private(set) var isLocalFocusActive = false
+    private(set) var focusedSectionID: DenseGraphSection.ID?
 
     private let nodesByID: [GraphNode.ID: GraphNode]
+    private let edgesByID: [DenseGraphEdge.ID: DenseGraphEdge]
     private let edgesByNodeID: [GraphNode.ID: [DenseGraphEdge]]
+    private let membershipPositionsByPersonID: [GraphNode.ID: [DenseGraphSection.ID: GraphPoint]]
     private let nodesInRenderingOrder: [GraphNode]
     private var localFocusNodeIDs = Set<GraphNode.ID>()
     private var localFocusPositions: [GraphNode.ID: GraphPoint] = [:]
@@ -34,6 +37,7 @@ final class DenseGraphViewModel {
     init(graph: DenseGraphData) {
         self.graph = graph
         nodesByID = Dictionary(uniqueKeysWithValues: graph.nodes.map { ($0.id, $0) })
+        edgesByID = Dictionary(uniqueKeysWithValues: graph.edges.map { ($0.id, $0) })
 
         var edgesByNodeID: [GraphNode.ID: [DenseGraphEdge]] = [:]
         for edge in graph.edges {
@@ -41,6 +45,11 @@ final class DenseGraphViewModel {
             edgesByNodeID[edge.targetID, default: []].append(edge)
         }
         self.edgesByNodeID = edgesByNodeID
+        var membershipPositionsByPersonID: [GraphNode.ID: [DenseGraphSection.ID: GraphPoint]] = [:]
+        for membership in graph.sectionMemberships {
+            membershipPositionsByPersonID[membership.personID, default: [:]][membership.sectionID] = membership.position
+        }
+        self.membershipPositionsByPersonID = membershipPositionsByPersonID
         nodesInRenderingOrder = graph.nodes.sorted { left, right in
             let leftPriority = left.kind == .person ? 1 : 0
             let rightPriority = right.kind == .person ? 1 : 0
@@ -56,6 +65,19 @@ final class DenseGraphViewModel {
 
     var hasSelection: Bool {
         selectedNodeID != nil
+    }
+
+    var usesOverviewRendering: Bool {
+        !isLocalFocusActive && camera.scale < .overviewDetailScale
+    }
+
+    var showsOverviewSections: Bool {
+        usesOverviewRendering && !hasSelection
+    }
+
+    var overviewMemberships: [DenseGraphSectionMembership] {
+        guard isNodeKindVisible(.person) else { return [] }
+        return graph.sectionMemberships
     }
 
     var selectedDossier: EntityDossier? {
@@ -140,8 +162,15 @@ final class DenseGraphViewModel {
         hiddenNodeKinds.remove(node.kind)
         exitLocalFocus()
         if let selectedNodeID {
-            navigationHistory.append(NavigationEntry(nodeID: selectedNodeID, camera: camera))
+            navigationHistory.append(
+                NavigationEntry(
+                    nodeID: selectedNodeID,
+                    camera: camera,
+                    focusedSectionID: focusedSectionID
+                )
+            )
         }
+        focusedSectionID = nil
         applySelection(node)
         if let focus {
             let ranges = cameraPanRanges
@@ -162,6 +191,7 @@ final class DenseGraphViewModel {
         hiddenNodeKinds.remove(node.kind)
         applySelection(node)
         camera = previous.camera
+        focusedSectionID = previous.focusedSectionID
     }
 
     func selectDailyPerson(on date: Date = .now, calendar: Calendar = .current) {
@@ -174,6 +204,7 @@ final class DenseGraphViewModel {
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         let seed = "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
         let person = people[Int(stableHash(seed) % UInt64(people.count))]
+        focusedSectionID = nil
         applySelection(person)
         focus(on: person.id)
     }
@@ -235,11 +266,11 @@ final class DenseGraphViewModel {
         }
         return switch node.kind {
         case .person:
-            camera.scale >= 0.16
+            camera.scale >= .personLabelScale && node.portrait != nil
         case .organization, .university:
-            camera.scale >= 0.20
+            camera.scale >= .entityLabelScale
         case .foundation, .family, .deal, .event:
-            camera.scale >= 0.20
+            camera.scale >= .entityLabelScale
         }
     }
 
@@ -255,6 +286,9 @@ final class DenseGraphViewModel {
 
     func updateCamera(_ camera: GraphCamera) {
         self.camera = camera
+        if !hasSelection && camera.scale < .overviewDetailScale {
+            focusedSectionID = nil
+        }
     }
 
     func panCamera(from initialCamera: GraphCamera, by translation: CGSize) {
@@ -291,10 +325,31 @@ final class DenseGraphViewModel {
         )
     }
 
+    func focus(on section: DenseGraphSection, viewport: CGSize, visibleGraphFrame: CGRect) {
+        exitLocalFocus()
+        focusedSectionID = section.id
+        var updatedCamera = camera
+        updatedCamera.setScale(.sectionFocusScale)
+        updatedCamera.recenter(
+            on: section.region.center,
+            at: CGPoint(x: visibleGraphFrame.midX, y: visibleGraphFrame.midY),
+            viewport: viewport,
+            horizontalRange: cameraPanRanges.horizontal,
+            verticalRange: cameraPanRanges.vertical
+        )
+        camera = updatedCamera
+    }
+
     func renderFrame(in viewport: CGSize) -> RenderFrame {
+        if usesOverviewRendering {
+            return overviewRenderFrame(in: viewport)
+        }
         let nodes = visibleNodes(in: viewport)
         if isLocalFocusActive {
             return RenderFrame(nodes: nodes, edges: localFocusEdges)
+        }
+        guard hasSelection else {
+            return RenderFrame(nodes: nodes, edges: [])
         }
         var seenEdgeIDs = Set<DenseGraphEdge.ID>()
         var edges: [DenseGraphEdge] = []
@@ -314,6 +369,10 @@ final class DenseGraphViewModel {
         var nodes = nodesInRenderingOrder.filter { node in
             guard isNodeKindVisible(node.kind) else { return false }
             guard !isLocalFocusActive || localFocusNodeIDs.contains(node.id) else { return false }
+            guard hasSelection || node.kind == .person else { return false }
+            if !hasSelection, let focusedSectionID {
+                guard graph.personSectionIDs[node.id, default: []].contains(focusedSectionID) else { return false }
+            }
             let point = camera.screenPoint(for: displayPosition(for: node), viewport: viewport)
             return point.x >= -overscan
                 && point.y >= -overscan
@@ -332,8 +391,23 @@ final class DenseGraphViewModel {
     }
 
     func displayPosition(for node: GraphNode) -> GraphPoint {
-        guard isLocalFocusActive else { return node.position }
-        return localFocusPositions[node.id] ?? node.position
+        if isLocalFocusActive {
+            return localFocusPositions[node.id] ?? node.position
+        }
+        guard let focusedSectionID else { return node.position }
+        if let membershipPosition = membershipPositionsByPersonID[node.id]?[focusedSectionID] {
+            return membershipPosition
+        }
+        guard
+            hasSelection,
+            highlightedNodeIDs.contains(node.id),
+            let selectedNode,
+            let selectedMembershipPosition = membershipPositionsByPersonID[selectedNode.id]?[focusedSectionID]
+        else { return node.position }
+        return GraphPoint(
+            x: node.position.x + selectedMembershipPosition.x - selectedNode.position.x,
+            y: node.position.y + selectedMembershipPosition.y - selectedNode.position.y
+        )
     }
 
     func isEdgeVisible(_ edge: DenseGraphEdge) -> Bool {
@@ -348,12 +422,16 @@ final class DenseGraphViewModel {
             && highlightedEdgeIDs.contains(edge.id)
     }
 
+    func section(id: DenseGraphSection.ID) -> DenseGraphSection? {
+        graph.section(id: id)
+    }
+
     // MARK: - Local focus
 
     func enterLocalFocus() {
         guard let selectedNode, !isLocalFocusActive else { return }
         cameraBeforeLocalFocus = camera
-        rebuildLocalFocus(around: selectedNode, anchor: selectedNode.position)
+        rebuildLocalFocus(around: selectedNode, anchor: displayPosition(for: selectedNode))
         isLocalFocusActive = true
     }
 
@@ -453,6 +531,28 @@ final class DenseGraphViewModel {
     }
 }
 
+// MARK: - Overview rendering
+
+private extension DenseGraphViewModel {
+    func overviewRenderFrame(in viewport: CGSize) -> RenderFrame {
+        guard hasSelection else { return RenderFrame(nodes: [], edges: []) }
+        let nodes = highlightedNodeIDs.compactMap { nodesByID[$0] }.filter { node in
+            guard isNodeKindVisible(node.kind) else { return false }
+            let point = camera.screenPoint(for: displayPosition(for: node), viewport: viewport)
+            return point.x >= -.overviewOverscan
+                && point.y >= -.overviewOverscan
+                && point.x <= viewport.width + .overviewOverscan
+                && point.y <= viewport.height + .overviewOverscan
+        }
+        let visibleNodeIDs = Set(nodes.map(\.id))
+        let edges = highlightedEdgeIDs.compactMap { edgeID -> DenseGraphEdge? in
+            guard let edge = edgesByID[edgeID] else { return nil }
+            return visibleNodeIDs.contains(edge.sourceID) || visibleNodeIDs.contains(edge.targetID) ? edge : nil
+        }
+        return RenderFrame(nodes: nodes, edges: edges)
+    }
+}
+
 private extension DenseGraphViewModel {
     struct NavigationFocus {
         let viewport: CGSize
@@ -467,14 +567,19 @@ private extension DenseGraphViewModel {
 }
 
 private extension Double {
+    static let entityLabelScale = 0.22
     static let localFocusPanPadding = 800.0
     static let localFocusFitCameraPadding = 7_000.0
+    static let overviewDetailScale = 0.12
     static let overviewCameraPadding = 7_000.0
     static let graphWorldSide = 10_000.0
+    static let personLabelScale = 0.18
+    static let sectionFocusScale = 0.20
 }
 
 private extension CGFloat {
     static let localFocusFitPadding = 48.0
+    static let overviewOverscan = 80.0
 }
 
 private extension UInt64 {

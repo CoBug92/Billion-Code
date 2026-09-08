@@ -87,10 +87,22 @@ private extension DenseGraphDossierPanel {
     var primarySummary: some View {
         switch node.kind {
         case .person:
-            if let wealth = dossier.wealth {
-                CompactWealthCard(
-                    formattedAmount: formatUSD(wealth.amountUSD)
-                )
+            VStack(alignment: .leading, spacing: Margin.x2) {
+                if let wealth = dossier.wealth {
+                    CompactWealthCard(
+                        formattedAmount: formatUSD(wealth.amountUSD)
+                    )
+                }
+                if let industries = personIndustryNames {
+                    VStack(alignment: .leading, spacing: Margin.x1) {
+                        Text(L10n.Graph.Dossier.industries)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(industries)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Asset.Colors.textPrimary.swiftUIColor)
+                    }
+                }
             }
         case .organization:
             CompactOrganizationCloud(
@@ -110,6 +122,10 @@ private extension DenseGraphDossierPanel {
                 symbol: node.kind.dossierSymbol
             )
         }
+    }
+
+    var personIndustryNames: String? {
+        dossier.facts.first { $0.id.hasSuffix(":industry") }?.value
     }
 
     @ViewBuilder

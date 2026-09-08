@@ -17,11 +17,9 @@ struct BillionCodeApp: App {
         let arguments = ProcessInfo.processInfo.arguments
         if let flag = arguments.firstIndex(of: "-selectedNode"), arguments.indices.contains(flag + 1) {
             viewModel.selectNode(id: arguments[flag + 1])
-        } else {
+        } else if arguments.contains("-dailyPerson") {
             viewModel.selectDailyPerson()
         }
-#else
-        viewModel.selectDailyPerson()
 #endif
         return viewModel
     }

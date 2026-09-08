@@ -31,3 +31,21 @@ extension GraphEntityKind {
         }
     }
 }
+
+extension DenseGraphSection {
+    @MainActor
+    var accentColor: Color {
+        switch accentIndex % 5 {
+        case 0:
+            Asset.Colors.chapterBlue.swiftUIColor
+        case 1:
+            Asset.Colors.chapterCoral.swiftUIColor
+        case 2:
+            Asset.Colors.chapterTeal.swiftUIColor
+        case 3:
+            Asset.Colors.chapterViolet.swiftUIColor
+        default:
+            Asset.Colors.chapterAmber.swiftUIColor
+        }
+    }
+}
