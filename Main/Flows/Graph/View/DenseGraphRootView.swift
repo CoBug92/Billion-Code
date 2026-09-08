@@ -20,7 +20,10 @@ struct DenseGraphRootView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            DenseGraphSceneView(viewModel: viewModel)
+            DenseGraphSceneView(
+                viewModel: viewModel,
+                visibleGraphFrame: visibleGraphFrame(geometry: geometry)
+            )
                 .sheet(isPresented: $isDossierPresented, onDismiss: dossierDidDismiss) {
                     dossierSheet(geometry: geometry)
                 }

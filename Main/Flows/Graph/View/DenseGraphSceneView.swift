@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DenseGraphSceneView: View {
     let viewModel: DenseGraphViewModel
+    let visibleGraphFrame: CGRect?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragStartCamera: GraphCamera?
@@ -40,7 +41,7 @@ struct DenseGraphSceneView: View {
                 .simultaneousGesture(panGesture)
                 .simultaneousGesture(magnificationGesture)
 
-                controls
+                controls(viewport: geometry.size)
                     .zIndex(1)
             }
         }
@@ -161,14 +162,17 @@ private extension DenseGraphSceneView {
         }
     }
 
-    var controls: some View {
+    func controls(viewport: CGSize) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             search
             filters
             if viewModel.hasSelection {
                 DenseGraphFocusButton(isActive: viewModel.isLocalFocusActive) {
                     withAnimation(reduceMotion ? nil : .smooth(duration: .localFocusAnimationDuration)) {
-                        viewModel.toggleLocalFocus()
+                        viewModel.toggleLocalFocus(
+                            viewport: viewport,
+                            visibleGraphFrame: visibleGraphFrame ?? CGRect(origin: .zero, size: viewport)
+                        )
                     }
                 }
             }
@@ -387,7 +391,8 @@ private extension Double {
 
 #Preview("Dense graph") {
     DenseGraphSceneView(
-        viewModel: DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        viewModel: DenseGraphViewModel(graph: DenseGraphFixture.performance),
+        visibleGraphFrame: nil
     )
     .preferredColorScheme(.dark)
 }

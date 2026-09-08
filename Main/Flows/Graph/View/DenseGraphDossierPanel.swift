@@ -155,12 +155,6 @@ private extension DenseGraphDossierPanel {
 private extension DenseGraphDossierPanel {
     var expandedDetails: some View {
         Group {
-            DossierStorySection(
-                title: node.kind == .person ? "Коротко о пути" : "Коротко о главном",
-                text: dossier.description,
-                tint: node.kind.denseGraphColor
-            )
-
             if let wealth = dossier.wealth, !wealth.components.isEmpty {
                 DossierWealthBreakdown(wealth: wealth)
             }
@@ -202,7 +196,7 @@ private extension DenseGraphDossierPanel {
                     && !$0.id.hasSuffix(":people")
             }
         case .person:
-            []
+            dossier.facts
         default:
             Array(dossier.facts.dropFirst())
         }

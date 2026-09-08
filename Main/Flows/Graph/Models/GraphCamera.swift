@@ -89,6 +89,41 @@ struct GraphCamera: Equatable, Sendable {
     mutating func zoom(by factor: Double) {
         scale = (scale * factor).clamped(to: .minimumGraphScale ... .maximumGraphScale)
     }
+
+    mutating func fit(
+        points: [GraphPoint],
+        viewport: CGSize,
+        visibleFrame: CGRect,
+        padding: CGFloat,
+        horizontalRange: ClosedRange<Double>,
+        verticalRange: ClosedRange<Double>
+    ) {
+        guard
+            let minimumX = points.map(\.x).min(),
+            let maximumX = points.map(\.x).max(),
+            let minimumY = points.map(\.y).min(),
+            let maximumY = points.map(\.y).max()
+        else { return }
+
+        let frame = visibleFrame.isEmpty ? CGRect(origin: .zero, size: viewport) : visibleFrame
+        let availableWidth = max(frame.width - padding * 2, 1)
+        let availableHeight = max(frame.height - padding * 2, 1)
+        let contentWidth = max(maximumX - minimumX, 1)
+        let contentHeight = max(maximumY - minimumY, 1)
+        scale = min(
+            Double(availableWidth) / contentWidth,
+            Double(availableHeight) / contentHeight
+        )
+        .clamped(to: .minimumGraphScale ... .maximumGraphScale)
+
+        recenter(
+            on: GraphPoint(x: (minimumX + maximumX) / 2, y: (minimumY + maximumY) / 2),
+            at: CGPoint(x: frame.midX, y: frame.midY),
+            viewport: viewport,
+            horizontalRange: horizontalRange,
+            verticalRange: verticalRange
+        )
+    }
 }
 
 // MARK: - Private extensions

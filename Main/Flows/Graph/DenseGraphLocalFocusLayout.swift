@@ -71,5 +71,5 @@ private extension Int {
 }
 
 private extension Double {
-    static let localFocusSpread = 1.75
+    static let localFocusSpread = 0.55
 }

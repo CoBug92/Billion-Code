@@ -59,8 +59,11 @@ private extension DenseGraphDossierFactory {
         let description: String
         if let first = work.min(by: { $0.startYear < $1.startYear }),
            let latest = work.max(by: { $0.startYear < $1.startYear }) {
-            description = "Путь от роли «\(first.role)» в \(first.name) до работы с \(latest.name). "
-                + "Ниже — ключевые этапы карьеры и связанные компании."
+            let educationText = education.isEmpty ? "" : " Образовательный контур: \(education.map(\.name).joined(separator: ", "))."
+            let currentText = current.isEmpty ? "" : " Текущая связка в графе: \(current.map(\.name).joined(separator: ", "))."
+            description = "Путь от роли «\(first.role)» в \(first.name) до этапа «\(latest.role)» в \(latest.name)."
+                + educationText
+                + currentText
         } else {
             description = "Датированный профиль связей человека в текущей версии графа."
         }
@@ -99,7 +102,9 @@ private extension DenseGraphDossierFactory {
             let role = $0.role.lowercased()
             return role.contains("основател") || role.contains("соосновател")
         }
+        let people = uniquePeople(in: links)
         let activity = organizationActivity[node.id] ?? "Технологические продукты и сервисы"
+        let operatingPeriod = organizationOperatingPeriod(for: node.id, links: links)
         var facts = [
             DossierFact(id: "\(node.id):activity", label: "Вид деятельности", value: activity, source: nil)
         ]
@@ -114,11 +119,24 @@ private extension DenseGraphDossierFactory {
                 source: nil
             )
         )
+        facts.append(
+            DossierFact(
+                id: "\(node.id):graph-links",
+                label: "Связей в графе",
+                value: "\(people.count) \(russianPeopleUnit(people.count))",
+                source: nil
+            )
+        )
         return EntityDossier(
             entityID: node.id,
             kind: node.kind,
-            description: "\(node.name) — \(activity.lowercased()). Ниже — основатели, руководители и ключевые связи.",
-            operatingPeriod: OrganizationDossierHighlights.operatingPeriods[node.id],
+            description: organizationDescription(
+                name: node.name,
+                activity: activity,
+                founders: founders,
+                people: people
+            ),
+            operatingPeriod: operatingPeriod,
             lastReviewedOn: "04.09.2026",
             facts: facts,
             links: links,
@@ -207,10 +225,58 @@ private extension DenseGraphDossierFactory {
         links: [DossierEntityLink]
     ) -> [DossierTimelineEvent] {
         (timeline(from: links) + (OrganizationDossierHighlights.events[organizationID] ?? []))
+            .appendingFoundationEvent(
+                for: organizationID,
+                year: foundationYears[organizationID]
+            )
             .sorted {
                 if $0.year != $1.year { return $0.year > $1.year }
                 return $0.id < $1.id
             }
+    }
+
+    static func organizationDescription(
+        name: String,
+        activity: String,
+        founders: [DossierEntityLink],
+        people: [DossierEntityLink]
+    ) -> String {
+        let foundersText = founders.isEmpty
+            ? "В текущем графе основатели не выделены отдельной связью."
+            : "Основатели/сооснователи в графе: \(founders.map(\.name).joined(separator: ", "))."
+        let peopleText = people.isEmpty
+            ? "Связанные люди появятся по мере расширения графа."
+            : "Карточка связывает \(people.count) \(russianPeopleUnit(people.count)) через роли, учебные и карьерные траектории."
+        return "\(name) — \(activity.lowercased()). \(foundersText) \(peopleText)"
+    }
+
+    static func organizationOperatingPeriod(
+        for organizationID: GraphNode.ID,
+        links: [DossierEntityLink]
+    ) -> String? {
+        if let highlightedPeriod = OrganizationDossierHighlights.operatingPeriods[organizationID] {
+            return highlightedPeriod
+        }
+        if let foundationYear = foundationYears[organizationID] {
+            return "\(foundationYear)–н.в."
+        }
+        let startedLinks = links.filter { $0.startYear > .zero }
+        guard let firstYear = startedLinks.map(\.startYear).min() else { return nil }
+        if links.contains(where: \.isCurrent) { return "\(firstYear)–н.в." }
+        guard let lastYear = startedLinks.map(\.startYear).max(), lastYear != firstYear else {
+            return "\(firstYear)"
+        }
+        return "\(firstYear)–\(lastYear)"
+    }
+
+    static func russianPeopleUnit(_ count: Int) -> String {
+        let lastTwoDigits = count % 100
+        if 11...14 ~= lastTwoDigits { return "человек" }
+        return switch count % 10 {
+        case 1: "человек"
+        case 2...4: "человека"
+        default: "человек"
+        }
     }
 
     static let wealthByPersonID: [GraphNode.ID: DossierWealth] = {
@@ -233,7 +299,32 @@ private extension DenseGraphDossierFactory {
             "person:patrick-collison": 7_200_000_000, "person:john-collison": 7_200_000_000,
             "person:jack-dorsey": 5_100_000_000, "person:evan-spiegel": 2_500_000_000,
             "person:bobby-murphy": 2_600_000_000, "person:brian-chesky": 11_900_000_000,
-            "person:travis-kalanick": 4_000_000_000, "person:dara-khosrowshahi": 250_000_000
+            "person:travis-kalanick": 4_000_000_000, "person:dara-khosrowshahi": 250_000_000,
+            "person:paul-allen": 20_300_000_000, "person:andy-jassy": 500_000_000,
+            "person:mackenzie-scott": 31_000_000_000, "person:howard-schultz": 3_000_000_000,
+            "person:reed-hastings": 4_000_000_000, "person:marc-randolph": 100_000_000,
+            "person:larry-fink": 1_200_000_000, "person:michael-bloomberg": 104_700_000_000,
+            "person:stephen-schwarzman": 44_000_000_000, "person:ken-griffin": 47_800_000_000,
+            "person:jamie-dimon": 2_300_000_000, "person:warren-buffett": 150_000_000_000,
+            "person:charlie-munger": 2_600_000_000, "person:sam-walton": 8_600_000_000,
+            "person:alice-walton": 106_000_000_000, "person:rob-walton": 103_000_000_000,
+            "person:michael-dell": 148_000_000_000, "person:mark-cuban": 5_700_000_000,
+            "person:marc-andreessen": 1_800_000_000, "person:ben-horowitz": 3_500_000_000,
+            "person:vinod-khosla": 9_200_000_000, "person:john-doerr": 15_200_000_000,
+            "person:mary-meeker": 400_000_000, "person:mary-barra": 250_000_000,
+            "person:henry-ford": 1_200_000_000, "person:alfred-sloan": 250_000_000,
+            "person:gordon-moore": 7_000_000_000, "person:robert-noyce": 3_700_000_000,
+            "person:andy-grove": 500_000_000, "person:lisa-su": 1_300_000_000,
+            "person:pat-gelsinger": 200_000_000, "person:morris-chang": 3_300_000_000,
+            "person:safra-catz": 2_100_000_000, "person:diane-greene": 600_000_000,
+            "person:ursula-burns": 50_000_000, "person:whitney-wolfe-herd": 500_000_000,
+            "person:brian-armstrong": 11_200_000_000, "person:fred-ehrsam": 3_000_000_000,
+            "person:aaron-levie": 100_000_000, "person:drew-houston": 2_800_000_000,
+            "person:melinda-french-gates": 30_000_000_000,
+            "person:lauren-powell-jobs": 13_000_000_000,
+            "person:anne-wojcicki": 700_000_000, "person:brian-acton": 2_500_000_000,
+            "person:jan-koum": 13_000_000_000, "person:noubar-afeyan": 1_900_000_000,
+            "person:robert-langer": 1_500_000_000
         ]
         let forbesIDs: Set<GraphNode.ID> = [
             "person:elon-musk", "person:peter-thiel", "person:reid-hoffman", "person:larry-page",
@@ -242,7 +333,17 @@ private extension DenseGraphDossierFactory {
             "person:satya-nadella", "person:jeff-bezos", "person:jensen-huang",
             "person:larry-ellison", "person:marc-benioff", "person:patrick-collison",
             "person:john-collison", "person:jack-dorsey", "person:evan-spiegel",
-            "person:bobby-murphy", "person:brian-chesky", "person:travis-kalanick"
+            "person:bobby-murphy", "person:brian-chesky", "person:travis-kalanick",
+            "person:mackenzie-scott", "person:howard-schultz", "person:reed-hastings",
+            "person:michael-bloomberg", "person:stephen-schwarzman", "person:ken-griffin",
+            "person:jamie-dimon", "person:warren-buffett", "person:alice-walton",
+            "person:rob-walton", "person:michael-dell", "person:mark-cuban",
+            "person:marc-andreessen", "person:ben-horowitz", "person:vinod-khosla",
+            "person:john-doerr", "person:lisa-su", "person:morris-chang",
+            "person:safra-catz", "person:brian-armstrong", "person:fred-ehrsam",
+            "person:drew-houston", "person:melinda-french-gates",
+            "person:lauren-powell-jobs", "person:brian-acton", "person:jan-koum",
+            "person:noubar-afeyan", "person:robert-langer"
         ]
         var result = values.mapValues { amount in
             DossierWealth(
@@ -290,8 +391,63 @@ private extension DenseGraphDossierFactory {
             "person:patrick-collison": details(1988, 9, 9), "person:john-collison": details(1990, 8, 6),
             "person:jack-dorsey": details(1976, 11, 19), "person:evan-spiegel": details(1990, 6, 4),
             "person:bobby-murphy": details(1988, 7, 19), "person:brian-chesky": details(1981, 8, 29),
-            "person:travis-kalanick": details(1976, 8, 6), "person:dara-khosrowshahi": details(1969, 5, 28)
+            "person:travis-kalanick": details(1976, 8, 6), "person:dara-khosrowshahi": details(1969, 5, 28),
+            "person:andy-jassy": details(1968, 1, 13), "person:mackenzie-scott": details(1970, 4, 7),
+            "person:howard-schultz": details(1953, 7, 19), "person:reed-hastings": details(1960, 10, 8),
+            "person:marc-randolph": details(1958, 4, 29), "person:larry-fink": details(1952, 11, 2),
+            "person:michael-bloomberg": details(1942, 2, 14),
+            "person:stephen-schwarzman": details(1947, 2, 14),
+            "person:ken-griffin": details(1968, 10, 15), "person:jamie-dimon": details(1956, 3, 13),
+            "person:warren-buffett": details(1930, 8, 30), "person:alice-walton": details(1949, 10, 7),
+            "person:rob-walton": details(1944, 10, 28), "person:michael-dell": details(1965, 2, 23),
+            "person:mark-cuban": details(1958, 7, 31),
+            "person:marc-andreessen": details(1971, 7, 9), "person:ben-horowitz": details(1966, 6, 13),
+            "person:vinod-khosla": details(1955, 1, 28), "person:john-doerr": details(1951, 6, 29),
+            "person:mary-meeker": details(1959, 9), "person:mary-barra": details(1961, 12, 24),
+            "person:lisa-su": details(1969, 11, 7), "person:pat-gelsinger": details(1961, 3, 5),
+            "person:morris-chang": details(1931, 7, 10), "person:safra-catz": details(1961, 12, 1),
+            "person:diane-greene": details(1955, 6, 9), "person:ursula-burns": details(1958, 9, 20),
+            "person:whitney-wolfe-herd": details(1989, 7, 1),
+            "person:brian-armstrong": details(1983, 1, 25), "person:fred-ehrsam": details(1988, 5, 10),
+            "person:aaron-levie": details(1985, 12, 27), "person:drew-houston": details(1983, 3, 4),
+            "person:melinda-french-gates": details(1964, 8, 15),
+            "person:lauren-powell-jobs": details(1963, 11, 6),
+            "person:anne-wojcicki": details(1973, 7, 28), "person:brian-acton": details(1972, 2, 17),
+            "person:jan-koum": details(1976, 2, 24), "person:noubar-afeyan": details(1962, 7, 25),
+            "person:robert-langer": details(1948, 8, 29)
         ]
+        values["person:paul-allen"] = DossierPersonDetails(
+            birthDate: .init(year: 1953, month: 1, day: 21),
+            ageReferenceDate: .init(year: 2018, month: 10, day: 15)
+        )
+        values["person:charlie-munger"] = DossierPersonDetails(
+            birthDate: .init(year: 1924, month: 1, day: 1),
+            ageReferenceDate: .init(year: 2023, month: 11, day: 28)
+        )
+        values["person:sam-walton"] = DossierPersonDetails(
+            birthDate: .init(year: 1918, month: 3, day: 29),
+            ageReferenceDate: .init(year: 1992, month: 4, day: 5)
+        )
+        values["person:henry-ford"] = DossierPersonDetails(
+            birthDate: .init(year: 1863, month: 7, day: 30),
+            ageReferenceDate: .init(year: 1947, month: 4, day: 7)
+        )
+        values["person:alfred-sloan"] = DossierPersonDetails(
+            birthDate: .init(year: 1875, month: 5, day: 23),
+            ageReferenceDate: .init(year: 1966, month: 2, day: 17)
+        )
+        values["person:gordon-moore"] = DossierPersonDetails(
+            birthDate: .init(year: 1929, month: 1, day: 3),
+            ageReferenceDate: .init(year: 2023, month: 3, day: 24)
+        )
+        values["person:robert-noyce"] = DossierPersonDetails(
+            birthDate: .init(year: 1927, month: 12, day: 12),
+            ageReferenceDate: .init(year: 1990, month: 6, day: 3)
+        )
+        values["person:andy-grove"] = DossierPersonDetails(
+            birthDate: .init(year: 1936, month: 9, day: 2),
+            ageReferenceDate: .init(year: 2016, month: 3, day: 21)
+        )
         values["person:steve-jobs"] = DossierPersonDetails(
             birthDate: .init(year: 1955, month: 2, day: 24),
             ageReferenceDate: .init(year: 2011, month: 10, day: 5)
@@ -379,7 +535,78 @@ private extension DenseGraphDossierFactory {
         "organization:uber": "Платформа мобильности, доставки и логистики",
         "organization:allen-company": "Инвестиционный банк и медиаконсалтинг",
         "organization:iac": "Интернет-холдинг потребительских сервисов",
-        "organization:expedia": "Онлайн-сервисы бронирования путешествий"
+        "organization:expedia": "Онлайн-сервисы бронирования путешествий",
+        "organization:honeywell": "Промышленная автоматизация, аэрокосмические и инженерные системы",
+        "organization:vulcan": "Инвестиции, филантропия, медиа и недвижимость",
+        "organization:aws": "Облачная инфраструктура и платформенные сервисы",
+        "organization:yield-giving": "Филантропические гранты и распределение капитала",
+        "organization:xerox": "Печать, копировальная техника и корпоративные документы",
+        "organization:starbucks": "Кофейни, потребительский ритейл и брендированные напитки",
+        "organization:pure-software": "Инструменты разработки и отладки программного обеспечения",
+        "organization:netflix": "Стриминг, производство контента и подписочные медиа",
+        "organization:first-boston": "Инвестиционно-банковские услуги и рынки капитала",
+        "organization:blackrock": "Управление активами, ETF и инвестиционная инфраструктура",
+        "organization:salomon-brothers": "Инвестиционный банк и торговля ценными бумагами",
+        "organization:bloomberg": "Финансовые данные, терминалы и деловая медиаинформация",
+        "organization:lehman-brothers": "Инвестиционный банк и рынки капитала",
+        "organization:blackstone": "Альтернативные инвестиции и private equity",
+        "organization:citadel": "Хедж-фонд и управление капиталом",
+        "organization:citadel-securities": "Маркет-мейкинг и электронная торговая инфраструктура",
+        "organization:american-express": "Платёжные карты, кредитные продукты и travel-сервисы",
+        "organization:citigroup": "Банковские услуги, рынки капитала и глобальные финансы",
+        "organization:jpmorgan": "Банковские услуги, инвестиционный банк и управление активами",
+        "organization:buffett-partnership": "Инвестиционное партнёрство",
+        "organization:berkshire": "Инвестиционный холдинг и страховой конгломерат",
+        "organization:munger-tolles": "Юридическая фирма и корпоративное право",
+        "organization:jc-penney": "Универмаги и розничная торговля",
+        "organization:walmart": "Массовый ритейл, логистика и электронная коммерция",
+        "organization:first-commerce": "Финансовые услуги и региональный банкинг",
+        "organization:crystal-bridges": "Художественный музей и культурная институция",
+        "organization:conner-winters": "Юридические услуги и коммерческое право",
+        "organization:dell": "Компьютеры, серверы, хранение данных и корпоративная инфраструктура",
+        "organization:msd-capital": "Инвестиционный офис и управление семейным капиталом",
+        "organization:micro-solutions": "Системная интеграция и компьютерные решения",
+        "organization:broadcast-com": "Интернет-аудио и потоковые медиа",
+        "organization:dallas-mavericks": "Профессиональный баскетбольный клуб и спортивный бизнес",
+        "organization:ncsa": "Исследовательский центр суперкомпьютеров и интернет-технологий",
+        "organization:netscape": "Веб-браузеры и ранняя интернет-инфраструктура",
+        "organization:a16z": "Венчурные инвестиции в технологические компании",
+        "organization:loudcloud": "Облачная инфраструктура и корпоративное ПО",
+        "organization:kleiner-perkins": "Венчурные инвестиции в технологические и биотехнологические компании",
+        "organization:khosla-ventures": "Венчурные инвестиции в deep tech, климат и программные компании",
+        "organization:morgan-stanley": "Инвестиционный банк, брокерские услуги и управление капиталом",
+        "organization:bond-capital": "Венчурные инвестиции в growth-stage компании",
+        "organization:gm": "Автомобили, промышленное производство и мобильность",
+        "organization:edison-illuminating": "Электроснабжение и городская энергетическая инфраструктура",
+        "organization:ford": "Автомобили и массовое промышленное производство",
+        "organization:hyatt-roller-bearing": "Шарикоподшипники и промышленное производство",
+        "organization:fairchild": "Полупроводники и интегральные схемы",
+        "organization:texas-instruments": "Полупроводники, аналоговые чипы и встроенные системы",
+        "organization:amd": "Процессоры, графические ускорители и вычислительные платформы",
+        "organization:vmware": "Виртуализация, облачная инфраструктура и корпоративное ПО",
+        "organization:tsmc": "Контрактное производство полупроводников",
+        "organization:donaldson-lufkin": "Инвестиционный банк и брокерские услуги",
+        "organization:veon": "Телекоммуникационные сети и цифровые сервисы",
+        "organization:tinder": "Мобильные знакомства и потребительские социальные приложения",
+        "organization:bumble": "Платформа знакомств и социальных коммуникаций",
+        "organization:deloitte": "Консалтинг, аудит и профессиональные услуги",
+        "organization:coinbase": "Криптовалютная биржа и блокчейн-инфраструктура",
+        "organization:goldman-sachs": "Инвестиционный банк и финансовые рынки",
+        "organization:paradigm": "Инвестиции в криптоинфраструктуру и Web3",
+        "organization:box": "Облачное хранение, совместная работа и управление контентом",
+        "organization:bit9": "Кибербезопасность и защита конечных точек",
+        "organization:dropbox": "Облачное хранение файлов и совместная работа",
+        "organization:gates-foundation": "Глобальная филантропия, здравоохранение и образование",
+        "organization:pivotal-ventures": "Инвестиции и инициативы для расширения возможностей женщин и семей",
+        "organization:emerson-collective": "Импакт-инвестиции, медиа, образование и иммиграционные инициативы",
+        "organization:passport-capital": "Инвестиционное управление и хедж-фонд",
+        "organization:23andme": "Потребительская генетика и биотехнологические данные",
+        "organization:yahoo": "Интернет-портал, поиск, почта и цифровые медиа",
+        "organization:whatsapp": "Мессенджер и мобильные коммуникации",
+        "organization:signal-foundation": "Некоммерческая инфраструктура приватных коммуникаций",
+        "organization:perseptive-biosystems": "Биотехнологическое оборудование и аналитические системы",
+        "organization:flagship-pioneering": "Создание и финансирование биотехнологических компаний",
+        "organization:moderna": "mRNA-терапии, вакцины и биотехнологии"
     ]
 
     static let foundationYears: [String: Int] = [
@@ -391,7 +618,17 @@ private extension DenseGraphDossierFactory {
         "organization:apple": 1976, "organization:next": 1985, "organization:pixar": 1979,
         "organization:oracle": 1977, "organization:salesforce": 1999, "organization:twitter": 2006,
         "organization:block": 2009, "organization:snap": 2011, "organization:airbnb": 2008,
-        "organization:uber": 2009, "organization:expedia": 1996
+        "organization:uber": 2009, "organization:expedia": 1996, "organization:starbucks": 1971,
+        "organization:netflix": 1997, "organization:blackrock": 1988, "organization:bloomberg": 1981,
+        "organization:blackstone": 1985, "organization:citadel": 1990,
+        "organization:citadel-securities": 2002, "organization:berkshire": 1839,
+        "organization:walmart": 1962, "organization:dell": 1984, "organization:netscape": 1994,
+        "organization:a16z": 2009, "organization:gm": 1908, "organization:ford": 1903,
+        "organization:fairchild": 1957, "organization:intel": 1968, "organization:amd": 1969,
+        "organization:vmware": 1998, "organization:tsmc": 1987, "organization:coinbase": 2012,
+        "organization:box": 2005, "organization:dropbox": 2007, "organization:moderna": 2010,
+        "organization:yahoo": 1994, "organization:whatsapp": 2009, "organization:bumble": 2014,
+        "organization:23andme": 2006
     ]
 
     static let universityMetadata: [String: (type: String, location: String, operatingPeriod: String)] = [
@@ -425,6 +662,56 @@ private extension DenseGraphDossierFactory {
         "university:upenn": ("Частный исследовательский университет", "Филадельфия, Пенсильвания, США", "1740"),
         "university:usc": ("Частный исследовательский университет", "Лос-Анджелес, Калифорния, США", "1880"),
         "university:uwm": ("Публичный исследовательский университет", "Милуоки, Висконсин, США", "1956"),
-        "university:wharton": ("Бизнес-школа", "Филадельфия, Пенсильвания, США", "1881")
+        "university:wharton": ("Бизнес-школа", "Филадельфия, Пенсильвания, США", "1881"),
+        "university:washington-state": ("Публичный исследовательский университет", "Пулман, Вашингтон, США", "1890"),
+        "university:northern-michigan": ("Публичный университет", "Маркетт, Мичиган, США", "1899"),
+        "university:bowdoin": ("Частный колледж свободных искусств", "Брансуик, Мэн, США", "1794"),
+        "university:hamilton": ("Частный колледж свободных искусств", "Клинтон, Нью-Йорк, США", "1793"),
+        "university:johns-hopkins": ("Частный исследовательский университет", "Балтимор, Мэриленд, США", "1876"),
+        "university:yale": ("Частный исследовательский университет", "Нью-Хейвен, Коннектикут, США", "1701"),
+        "university:tufts": ("Частный исследовательский университет", "Медфорд, Массачусетс, США", "1852"),
+        "university:nebraska": ("Публичный исследовательский университет", "Линкольн, Небраска, США", "1869"),
+        "university:columbia": ("Частный исследовательский университет", "Нью-Йорк, США", "1754"),
+        "university:missouri": ("Публичный исследовательский университет", "Колумбия, Миссури, США", "1839"),
+        "university:trinity": ("Частный университет", "Сан-Антонио, Техас, США", "1869"),
+        "university:wooster": ("Частный колледж свободных искусств", "Вустер, Огайо, США", "1866"),
+        "university:ut-austin": ("Публичный исследовательский университет", "Остин, Техас, США", "1883"),
+        "university:indiana": ("Публичный исследовательский университет", "Блумингтон, Индиана, США", "1820"),
+        "university:iit-delhi": ("Публичный технический институт", "Дели, Индия", "1961"),
+        "university:cmu": ("Частный исследовательский университет", "Питтсбург, Пенсильвания, США", "1900"),
+        "university:rice": ("Частный исследовательский университет", "Хьюстон, Техас, США", "1912"),
+        "university:depauw": ("Частный колледж свободных искусств", "Гринкасл, Индиана, США", "1837"),
+        "university:cornell": ("Частный исследовательский университет", "Итака, Нью-Йорк, США", "1865"),
+        "university:kettering": ("Частный инженерный университет", "Флинт, Мичиган, США", "1919"),
+        "university:detroit-business": ("Профессиональный бизнес-институт", "Детройт, Мичиган, США", "1850"),
+        "university:caltech": ("Частный исследовательский университет", "Пасадина, Калифорния, США", "1891"),
+        "university:grinnell": ("Частный колледж свободных искусств", "Гриннелл, Айова, США", "1846"),
+        "university:ccny": ("Публичный колледж", "Нью-Йорк, США", "1847"),
+        "university:santa-clara": ("Частный университет", "Санта-Клара, Калифорния, США", "1851"),
+        "university:upenn-law": ("Юридическая школа", "Филадельфия, Пенсильвания, США", "1850"),
+        "university:vermont": ("Публичный исследовательский университет", "Берлингтон, Вермонт, США", "1791"),
+        "university:polytechnic-nyu": ("Инженерная школа", "Бруклин, Нью-Йорк, США", "1854"),
+        "university:smu": ("Частный исследовательский университет", "Даллас, Техас, США", "1911"),
+        "university:sjsu": ("Публичный университет", "Сан-Хосе, Калифорния, США", "1857"),
+        "university:mcgill": ("Публичный исследовательский университет", "Монреаль, Канада", "1821")
     ]
+}
+
+private extension Array where Element == DossierTimelineEvent {
+    func appendingFoundationEvent(
+        for organizationID: GraphNode.ID,
+        year: Int?
+    ) -> [DossierTimelineEvent] {
+        guard let year else { return self }
+        return self + [
+            DossierTimelineEvent(
+                id: "timeline:\(organizationID):founded",
+                year: year,
+                title: "Основание",
+                description: "Компания появляется как отдельная организация в графе.",
+                linkedEntityID: organizationID,
+                source: nil
+            )
+        ]
+    }
 }

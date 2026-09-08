@@ -3,14 +3,14 @@ import Testing
 
 @Suite("Dense native graph fixture")
 struct DenseGraphFixtureTests {
-    @Test("Fixture contains 38 people and a dense affiliation network")
+    @Test("Fixture contains 85 people and a dense affiliation network")
     func expectedScale() {
         let graph = DenseGraphFixture.performance
         let people = graph.nodes.filter { $0.kind == .person }
 
-        #expect(people.count == 38)
-        #expect(graph.nodes.count >= 90)
-        #expect(graph.edges.count >= 100)
+        #expect(people.count == 85)
+        #expect(graph.nodes.count >= 290)
+        #expect(graph.edges.count >= 340)
     }
 
     @Test("Every person has education and business affiliations")
@@ -25,7 +25,7 @@ struct DenseGraphFixtureTests {
             #expect(graph.dossier(id: person.id)?.personDetails != nil)
             #expect(graph.dossier(id: person.id)?.education.isEmpty == false)
         }
-        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count == 24)
+        #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count == 77)
     }
 
     @Test("Every edge points to unique existing nodes")
@@ -115,6 +115,18 @@ struct DenseGraphFixtureTests {
             let highlights = OrganizationDossierHighlights.events[organizationID]
             #expect(highlights?.isEmpty == false)
             #expect(highlights?.allSatisfy { $0.source != nil } == true)
+        }
+    }
+
+    @Test("Organization dossiers expose operating periods and graph context")
+    func organizationDossierContext() {
+        let graph = DenseGraphFixture.performance
+
+        for organization in graph.nodes where organization.kind == .organization {
+            let dossier = graph.dossier(id: organization.id)
+            #expect(dossier?.operatingPeriod?.isEmpty == false)
+            #expect(dossier?.facts.contains { $0.id.hasSuffix(":graph-links") } == true)
+            #expect(dossier?.timeline.isEmpty == false)
         }
     }
 

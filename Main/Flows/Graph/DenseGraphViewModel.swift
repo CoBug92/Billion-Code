@@ -330,6 +330,11 @@ final class DenseGraphViewModel {
         isLocalFocusActive = true
     }
 
+    func enterLocalFocus(viewport: CGSize, visibleGraphFrame: CGRect) {
+        enterLocalFocus()
+        fitLocalFocus(in: viewport, visibleGraphFrame: visibleGraphFrame)
+    }
+
     private func rebuildLocalFocus(around selectedNode: GraphNode, anchor: GraphPoint) {
         guard let result = DenseGraphLocalFocusLayout().layout(
             nodes: nodesInRenderingOrder,
@@ -365,6 +370,27 @@ final class DenseGraphViewModel {
         }
     }
 
+    func toggleLocalFocus(viewport: CGSize, visibleGraphFrame: CGRect) {
+        if isLocalFocusActive {
+            exitLocalFocus()
+        } else {
+            enterLocalFocus(viewport: viewport, visibleGraphFrame: visibleGraphFrame)
+        }
+    }
+
+    private func fitLocalFocus(in viewport: CGSize, visibleGraphFrame: CGRect) {
+        guard isLocalFocusActive else { return }
+        let ranges = localFocusFitCameraRanges
+        camera.fit(
+            points: Array(localFocusPositions.values),
+            viewport: viewport,
+            visibleFrame: visibleGraphFrame,
+            padding: .localFocusFitPadding,
+            horizontalRange: ranges.horizontal,
+            verticalRange: ranges.vertical
+        )
+    }
+
     private var cameraPanRanges: (horizontal: ClosedRange<Double>, vertical: ClosedRange<Double>) {
         guard
             isLocalFocusActive,
@@ -380,6 +406,21 @@ final class DenseGraphViewModel {
             minimumY - .localFocusPanPadding ... maximumY + .localFocusPanPadding
         )
     }
+
+    private var localFocusFitCameraRanges: (horizontal: ClosedRange<Double>, vertical: ClosedRange<Double>) {
+        guard
+            let minimumX = localFocusPositions.values.map(\.x).min(),
+            let maximumX = localFocusPositions.values.map(\.x).max(),
+            let minimumY = localFocusPositions.values.map(\.y).min(),
+            let maximumY = localFocusPositions.values.map(\.y).max()
+        else {
+            return (.zero ... .graphWorldSide, .zero ... .graphWorldSide)
+        }
+        return (
+            minimumX - .localFocusFitCameraPadding ... maximumX + .localFocusFitCameraPadding,
+            minimumY - .localFocusFitCameraPadding ... maximumY + .localFocusFitCameraPadding
+        )
+    }
 }
 
 private extension DenseGraphViewModel {
@@ -391,5 +432,10 @@ private extension DenseGraphViewModel {
 
 private extension Double {
     static let localFocusPanPadding = 800.0
+    static let localFocusFitCameraPadding = 7_000.0
     static let graphWorldSide = 10_000.0
+}
+
+private extension CGFloat {
+    static let localFocusFitPadding = 48.0
 }

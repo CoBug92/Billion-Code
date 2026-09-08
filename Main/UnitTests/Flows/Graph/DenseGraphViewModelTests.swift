@@ -154,6 +154,27 @@ struct DenseGraphViewModelTests {
         })
     }
 
+    @Test("Local focus fits its neighborhood into the visible graph area")
+    func localFocusFitsVisibleGraphArea() {
+        let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
+        let viewport = CGSize(width: 390, height: 844)
+        let visibleGraphFrame = CGRect(x: 0, y: 59, width: 390, height: 312)
+        viewModel.selectNode(id: "person:elon-musk")
+
+        viewModel.enterLocalFocus(viewport: viewport, visibleGraphFrame: visibleGraphFrame)
+
+        let localFrame = viewModel.renderFrame(in: CGSize(width: 100_000, height: 100_000))
+        let fittedFrame = visibleGraphFrame.insetBy(dx: -1, dy: -1)
+        #expect(!localFrame.nodes.isEmpty)
+        #expect(localFrame.nodes.allSatisfy { node in
+            let point = viewModel.camera.screenPoint(
+                for: viewModel.displayPosition(for: node),
+                viewport: viewport
+            )
+            return fittedFrame.contains(point)
+        })
+    }
+
     @Test("Local focus keeps all of its edges at high zoom")
     func localFocusDoesNotCullEdgesByEndpoints() {
         let viewModel = DenseGraphViewModel(graph: DenseGraphFixture.performance)
