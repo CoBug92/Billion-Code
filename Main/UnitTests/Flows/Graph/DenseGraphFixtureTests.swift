@@ -3,29 +3,54 @@ import Testing
 
 @Suite("Dense native graph fixture")
 struct DenseGraphFixtureTests {
-    @Test("Fixture contains 124 people and a dense affiliation network")
+    @Test("Fixture covers the complete 2026 U.S. annual list and its related people")
     func expectedScale() {
         let graph = DenseGraphFixture.performance
         let people = graph.nodes.filter { $0.kind == .person }
+        let catalog = AmericanBillionairesCatalog.current
+        let annualIDs = Set(catalog.people.filter(\.isAmericanBillionaire2026).map(\.id))
+        let graphIDs = Set(people.map(\.id))
 
-        #expect(people.count == 124)
-        #expect(graph.nodes.count >= 410)
-        #expect(graph.edges.count >= 460)
+        #expect(catalog.annualAmericanBillionaireCount == 989)
+        #expect(annualIDs.count == 989)
+        #expect(annualIDs.isSubset(of: graphIDs))
+        #expect(people.count >= 1_400)
+        #expect(graph.nodes.count >= 1_900)
+        #expect(graph.edges.count >= 4_000)
     }
 
-    @Test("Every person has education and business affiliations")
+    @Test("Annual billionaire records expose sourced dossier data without invented education")
     func completePeople() {
         let graph = DenseGraphFixture.performance
+        let annualPeople = AmericanBillionairesCatalog.current.people.filter(\.isAmericanBillionaire2026)
 
-        for person in graph.nodes where person.kind == .person {
+        for person in annualPeople {
+            let dossier = graph.dossier(id: person.id)
             let edges = graph.edges.filter { $0.connects(person.id) }
-            #expect(edges.contains { $0.kind == .business })
-            #expect(edges.contains { $0.kind == .education })
-            #expect(graph.dossier(id: person.id)?.wealth != nil)
-            #expect(graph.dossier(id: person.id)?.personDetails != nil)
-            #expect(graph.dossier(id: person.id)?.education.isEmpty == false)
+            #expect(graph.node(id: person.id) != nil)
+            #expect(dossier?.wealth != nil)
+            #expect(dossier?.facts.contains { $0.id.hasSuffix(":forbes-rank") } == true)
+            if !person.education.isEmpty {
+                #expect(edges.contains { $0.kind == .education })
+                #expect(dossier?.education.isEmpty == false)
+            }
+            if !person.sourcesOfWealth.isEmpty || person.organizationName != nil {
+                #expect(edges.contains { $0.kind == .business })
+            }
         }
         #expect(graph.nodes.filter { $0.kind == .person && $0.portrait != nil }.count >= 77)
+    }
+
+    @Test("Imported related-person references resolve inside the graph")
+    func importedRelationshipsResolve() {
+        let graph = DenseGraphFixture.performance
+        let graphIDs = Set(graph.nodes.map(\.id))
+        let relatedIDs = AmericanBillionairesCatalog.current.people
+            .flatMap(\.relatedPeople)
+            .map(\.personID)
+
+        #expect(Set(relatedIDs).isSubset(of: graphIDs))
+        #expect(graph.edges.filter { $0.kind == .association }.count >= 1_000)
     }
 
     @Test("Every edge points to unique existing nodes")

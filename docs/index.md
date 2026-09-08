@@ -11,6 +11,7 @@
 3. [Проверка ценности в TestFlight](product/mvp-validation.md)
 4. [Редакционная и доказательная политика](editorial/evidence-policy.md)
 5. [Шаблон профиля и первый состав](editorial/profile-template-and-roster.md)
+6. [Источники данных графа](data-sources.md)
 
 ### UX и iOS-разработка
 

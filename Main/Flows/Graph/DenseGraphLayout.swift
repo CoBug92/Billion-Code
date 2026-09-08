@@ -8,6 +8,9 @@ struct DenseGraphLayout {
     ) -> [GraphNode.ID: GraphPoint] {
         let sortedNodes = nodes.sorted { $0.id < $1.id }
         let sortedEdges = edges.sorted { $0.id < $1.id }
+        if sortedNodes.count > Int.forceLayoutNodeLimit {
+            return scalableLayout(nodes: sortedNodes, edges: sortedEdges, layoutVersion: layoutVersion)
+        }
         var points = Dictionary(uniqueKeysWithValues: sortedNodes.map { node in
             (node.id, initialPoint(id: node.id, version: layoutVersion))
         })
@@ -23,6 +26,108 @@ struct DenseGraphLayout {
         }
         resolveCollisions(nodes: sortedNodes, points: &points)
         return normalize(points)
+    }
+}
+
+// MARK: - Large graph layout
+
+private extension DenseGraphLayout {
+    func scalableLayout(
+        nodes: [GraphNode],
+        edges: [DenseGraphEdge],
+        layoutVersion: Int
+    ) -> [GraphNode.ID: GraphPoint] {
+        let side = max(Int(ceil(sqrt(Double(nodes.count) * 1.28))), 2)
+        let inset = 260.0
+        let spacing = (Double.graphWorldSide - inset * 2) / Double(side - 1)
+        let nodesByID = Dictionary(uniqueKeysWithValues: nodes.map { ($0.id, $0) })
+        var occupied = Set<Int>()
+        var cellsByID: [GraphNode.ID: Int] = [:]
+
+        let institutions = nodes
+            .filter { $0.kind != .person }
+            .sorted { stableHash("\(layoutVersion):\($0.id)") < stableHash("\(layoutVersion):\($1.id)") }
+        for node in institutions {
+            let preferred = Int(stableHash("institution:\(layoutVersion):\(node.id)") % UInt64(side * side))
+            let cell = firstFreeCell(startingAt: preferred, side: side, occupied: occupied)
+            occupied.insert(cell)
+            cellsByID[node.id] = cell
+        }
+
+        var businessAnchorsByPersonID: [GraphNode.ID: GraphNode.ID] = [:]
+        for edge in edges where edge.kind == .business {
+            guard
+                let source = nodesByID[edge.sourceID],
+                let target = nodesByID[edge.targetID]
+            else { continue }
+            if source.kind == .person, target.kind != .person {
+                businessAnchorsByPersonID[source.id] = businessAnchorsByPersonID[source.id] ?? target.id
+            } else if target.kind == .person, source.kind != .person {
+                businessAnchorsByPersonID[target.id] = businessAnchorsByPersonID[target.id] ?? source.id
+            }
+        }
+
+        for person in nodes.filter({ $0.kind == .person }) {
+            let preferred: Int
+            if
+                let anchorID = businessAnchorsByPersonID[person.id],
+                let anchorCell = cellsByID[anchorID] {
+                preferred = nearestFreeCell(
+                    to: anchorCell,
+                    side: side,
+                    seed: stableHash("person:\(layoutVersion):\(person.id)"),
+                    occupied: occupied
+                )
+            } else {
+                let hashed = Int(stableHash("person:\(layoutVersion):\(person.id)") % UInt64(side * side))
+                preferred = firstFreeCell(startingAt: hashed, side: side, occupied: occupied)
+            }
+            occupied.insert(preferred)
+            cellsByID[person.id] = preferred
+        }
+
+        return Dictionary(uniqueKeysWithValues: nodes.compactMap { node in
+            guard let cell = cellsByID[node.id] else { return nil }
+            let column = cell % side
+            let row = cell / side
+            return (
+                node.id,
+                GraphPoint(
+                    x: inset + Double(column) * spacing,
+                    y: inset + Double(row) * spacing
+                )
+            )
+        })
+    }
+
+    func firstFreeCell(startingAt preferred: Int, side: Int, occupied: Set<Int>) -> Int {
+        let count = side * side
+        for offset in 0 ..< count {
+            let cell = (preferred + offset) % count
+            if !occupied.contains(cell) { return cell }
+        }
+        return preferred
+    }
+
+    func nearestFreeCell(to anchor: Int, side: Int, seed: UInt64, occupied: Set<Int>) -> Int {
+        let anchorColumn = anchor % side
+        let anchorRow = anchor / side
+        for radius in 1 ..< side {
+            var candidates: [Int] = []
+            for row in max(0, anchorRow - radius) ... min(side - 1, anchorRow + radius) {
+                for column in max(0, anchorColumn - radius) ... min(side - 1, anchorColumn + radius) {
+                    guard abs(column - anchorColumn) == radius || abs(row - anchorRow) == radius else { continue }
+                    candidates.append(row * side + column)
+                }
+            }
+            guard !candidates.isEmpty else { continue }
+            let start = Int(seed % UInt64(candidates.count))
+            for offset in candidates.indices {
+                let cell = candidates[(start + offset) % candidates.count]
+                if !occupied.contains(cell) { return cell }
+            }
+        }
+        return firstFreeCell(startingAt: Int(seed % UInt64(side * side)), side: side, occupied: occupied)
     }
 }
 
@@ -222,6 +327,7 @@ private extension Double {
     static let attraction = 0.016
     static let epsilon = 0.001
     static let familyEdgeLength = 1_700.0
+    static let graphWorldSide = 10_000.0
     static let gravity = 0.0012
     static let maximumMovement = 95.0
     static let minimumDistanceSquared = 10_000.0
@@ -234,6 +340,7 @@ private extension Double {
 
 private extension Int {
     static let collisionPasses = 16
+    static let forceLayoutNodeLimit = 600
     static let iterations = 140
 }
 

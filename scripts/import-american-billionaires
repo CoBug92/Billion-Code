@@ -1,0 +1,108 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "csv"
+require "bigdecimal"
+require "json"
+require "set"
+
+unless ARGV.size == 6
+  warn "Usage: scripts/import-american-billionaires FORBES_CSV PROFILE_INDEX US_INFO_DIR US_RELATED_DIR RELATED_INFO_DIR OUTPUT_JSON"
+  exit 64
+end
+
+annual_path, profile_index_path, info_dir, related_dir, related_info_dir, output_path = ARGV
+
+def slug(value)
+  value
+    .downcase
+    .gsub(/& family/i, "")
+    .unicode_normalize(:nfkd)
+    .encode("ASCII", invalid: :replace, undef: :replace, replace: "")
+    .gsub(/[^a-z0-9]+/, "-")
+    .gsub(/^-|-$/, "")
+end
+
+def read_json(path, fallback: nil)
+  JSON.parse(File.read(path))
+rescue JSON::ParserError, Errno::ENOENT
+  fallback
+end
+
+profile_index = JSON.parse(File.read(profile_index_path))
+profiles_by_exact_name = profile_index.group_by { |_uri, profile| profile.fetch("name") }
+annual_rows = CSV.read(annual_path, headers: true).select do |row|
+  row["Citizenship"] == "United States"
+end
+
+annual_by_uri = annual_rows.to_h do |row|
+  exact_match = profiles_by_exact_name[row["Name"]]&.first&.first
+  [exact_match || slug(row["Name"]), row]
+end
+
+related_by_uri = annual_by_uri.keys.to_h do |uri|
+  relationships = read_json(File.join(related_dir, "#{uri}.json"), fallback: [])
+  [uri, relationships]
+end
+
+included_uris = Set.new(annual_by_uri.keys)
+related_by_uri.each_value do |relationships|
+  relationships.each { |relationship| included_uris.add(relationship.fetch("uri")) }
+end
+
+people = included_uris.sort.filter_map do |uri|
+  annual = annual_by_uri[uri]
+  info_path = File.join(annual ? info_dir : related_info_dir, "#{uri}.json")
+  info = read_json(info_path)
+  next unless info
+
+  indexed = profile_index.fetch(uri, {})
+  annual_net_worth = annual && (BigDecimal(annual.fetch("Net Worth")) * 1_000_000_000).to_i
+  current_net_worth = (indexed.fetch("networth", 0).to_f * 1_000_000).round
+  residence = info.fetch("residence", {}) || {}
+  organization = info.fetch("organization", {}) || {}
+
+  {
+    "id" => "person:#{uri}",
+    "sourceURI" => uri,
+    "name" => annual&.fetch("Name") || info.fetch("name"),
+    "isAmericanBillionaire2026" => !annual.nil?,
+    "annualRank" => annual && annual.fetch("Rank").to_i,
+    "netWorthUSD" => annual_net_worth || current_net_worth,
+    "wealthAsOf" => annual ? "2026-03-01" : indexed.fetch("update", "2026-08-31"),
+    "birthDate" => info["birthDate"],
+    "citizenship" => info["citizenship"],
+    "residenceCity" => residence["city"],
+    "residenceState" => residence["state"],
+    "residenceCountry" => residence["country"],
+    "industries" => Array(info["industry"]),
+    "sourcesOfWealth" => Array(info["source"]).reject(&:empty?),
+    "organizationName" => organization["name"],
+    "organizationTitle" => organization["title"],
+    "education" => Array(info["education"]).map do |education|
+      { "school" => education["school"], "degree" => education["degree"] }
+    end,
+    "relatedPeople" => Array(related_by_uri[uri]).map do |relationship|
+      {
+        "personID" => "person:#{relationship.fetch("uri")}",
+        "name" => relationship.fetch("name"),
+        "relationship" => relationship["type"].to_s
+      }
+    end
+  }.compact
+end
+
+payload = {
+  "schemaVersion" => 1,
+  "edition" => "Forbes World's Billionaires 2026 — United States",
+  "wealthSnapshotDate" => "2026-03-01",
+  "annualAmericanBillionaireCount" => annual_by_uri.size,
+  "sources" => [
+    "https://www.forbes.com/billionaires/",
+    "https://github.com/komed3/rtb-api"
+  ],
+  "people" => people
+}
+
+File.write(output_path, JSON.pretty_generate(payload) + "\n")
+puts "Wrote #{people.size} people (#{annual_by_uri.size} annual U.S. billionaires) to #{output_path}"

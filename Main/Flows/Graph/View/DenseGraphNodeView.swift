@@ -5,13 +5,14 @@ struct DenseGraphNodeView: View {
     let isSelected: Bool
     let isHighlighted: Bool
     let showsLabel: Bool
+    let zoomScale: Double
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             symbol
                 .frame(width: symbolSize, height: symbolSize)
-                .frame(width: .graphNodeTouchSize, height: .graphNodeTouchSize)
+                .frame(width: touchSize, height: touchSize)
                 .contentShape(Rectangle())
                 .overlay(alignment: .top) {
                     if showsLabel {
@@ -24,13 +25,13 @@ struct DenseGraphNodeView: View {
                             .padding(.vertical, 2)
                             .background(Asset.Colors.surfacePrimary.swiftUIColor.opacity(0.92), in: Capsule())
                             .overlay(Capsule().stroke(.secondary.opacity(0.12)))
-                            .offset(y: .graphNodeLabelOffset)
+                            .offset(y: labelOffset)
                             .transition(.opacity)
                     }
                 }
         }
         .buttonStyle(.plain)
-        .opacity(isHighlighted ? 1 : 0.13)
+        .opacity(isHighlighted ? 1 : 0.05)
         .accessibilityLabel(node.name)
         .accessibilityValue(accessibilityValue)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
@@ -73,12 +74,26 @@ private extension DenseGraphNodeView {
     }
 
     var symbolSize: CGFloat {
-        switch node.kind {
+        let baseSize: CGFloat = switch node.kind {
         case .person: 34
         case .organization: 19
         case .university: 23
         case .foundation, .family, .deal, .event: 21
         }
+        return baseSize * presentationScale
+    }
+
+    var presentationScale: CGFloat {
+        guard !isSelected else { return 1 }
+        return min(max(CGFloat(zoomScale / 0.14), 0.24), 1)
+    }
+
+    var touchSize: CGFloat {
+        max(.graphNodeMinimumTouchSize, .graphNodeTouchSize * presentationScale)
+    }
+
+    var labelOffset: CGFloat {
+        touchSize / 2 + symbolSize / 2 + 4
     }
 
     var displayName: String {
@@ -122,8 +137,8 @@ private struct DenseGraphTriangle: Shape {
 // MARK: - Constants
 
 private extension CGFloat {
+    static let graphNodeMinimumTouchSize = 18.0
     static let graphNodeTouchSize = 44.0
-    static let graphNodeLabelOffset = 48.0
 }
 
 // MARK: - Preview
@@ -134,6 +149,7 @@ private extension CGFloat {
         isSelected: true,
         isHighlighted: true,
         showsLabel: true,
+        zoomScale: 0.14,
         action: {}
     )
     .padding()

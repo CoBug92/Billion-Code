@@ -27,7 +27,7 @@
 "graph.relationship.sources.title" = "Источники";
 "graph.panel.expand" = "Развернуть";
 "graph.panel.collapse" = "Свернуть";
-"graph.dossier.current_companies" = "Текущие компании";
+"graph.dossier.current_companies" = "Бизнес и активы";
 "graph.dossier.close" = "Закрыть";
 "graph.dossier.past_companies" = "Прошлые компании";
 "graph.dossier.education" = "Образование";

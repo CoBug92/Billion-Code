@@ -144,7 +144,14 @@ final class DenseGraphViewModel {
         }
         applySelection(node)
         if let focus {
-            camera.recenter(on: node.position, at: focus.screenPoint, viewport: focus.viewport)
+            let ranges = cameraPanRanges
+            camera.recenter(
+                on: node.position,
+                at: focus.screenPoint,
+                viewport: focus.viewport,
+                horizontalRange: ranges.horizontal,
+                verticalRange: ranges.vertical
+            )
         } else {
             self.focus(on: node.id)
         }
@@ -223,13 +230,17 @@ final class DenseGraphViewModel {
         if isLocalFocusActive {
             return true
         }
-        if node.kind == .person {
-            return true
-        }
         if hasSelection {
             return directlyConnectedNodeIDs.contains(node.id)
         }
-        return true
+        return switch node.kind {
+        case .person:
+            camera.scale >= 0.16
+        case .organization, .university:
+            camera.scale >= 0.20
+        case .foundation, .family, .deal, .event:
+            camera.scale >= 0.20
+        }
     }
 
     private func periodsOverlap(_ left: DenseGraphEdge, _ right: DenseGraphEdge) -> Bool {
@@ -415,7 +426,10 @@ final class DenseGraphViewModel {
             let minimumY = localFocusPositions.values.map(\.y).min(),
             let maximumY = localFocusPositions.values.map(\.y).max()
         else {
-            return (.zero ... .graphWorldSide, .zero ... .graphWorldSide)
+            return (
+                -.overviewCameraPadding ... .graphWorldSide + .overviewCameraPadding,
+                -.overviewCameraPadding ... .graphWorldSide + .overviewCameraPadding
+            )
         }
         return (
             minimumX - .localFocusPanPadding ... maximumX + .localFocusPanPadding,
@@ -455,6 +469,7 @@ private extension DenseGraphViewModel {
 private extension Double {
     static let localFocusPanPadding = 800.0
     static let localFocusFitCameraPadding = 7_000.0
+    static let overviewCameraPadding = 7_000.0
     static let graphWorldSide = 10_000.0
 }
 

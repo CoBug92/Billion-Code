@@ -72,8 +72,13 @@ struct DenseGraphViewModelTests {
     @Test("Daily person selection is stable per day and not fixed to Elon Musk")
     func dailyPersonSelection() {
         let calendar = Calendar(identifier: .gregorian)
-        let today = DateComponents(calendar: calendar, year: 2026, month: 9, day: 8).date!
-        let tomorrow = DateComponents(calendar: calendar, year: 2026, month: 9, day: 9).date!
+        guard
+            let today = DateComponents(calendar: calendar, year: 2026, month: 9, day: 8).date,
+            let tomorrow = DateComponents(calendar: calendar, year: 2026, month: 9, day: 9).date
+        else {
+            Issue.record("Test dates could not be created")
+            return
+        }
         let first = DenseGraphViewModel(graph: DenseGraphFixture.performance)
         let second = DenseGraphViewModel(graph: DenseGraphFixture.performance)
         let nextDay = DenseGraphViewModel(graph: DenseGraphFixture.performance)

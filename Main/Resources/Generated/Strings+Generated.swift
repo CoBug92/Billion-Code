@@ -68,8 +68,8 @@ public enum L10n {
       public static let close = L10n.tr("Localizable", "graph.dossier.close", fallback: "Закрыть")
       /// Соучредители
       public static let cofounders = L10n.tr("Localizable", "graph.dossier.cofounders", fallback: "Соучредители")
-      /// Текущие компании
-      public static let currentCompanies = L10n.tr("Localizable", "graph.dossier.current_companies", fallback: "Текущие компании")
+      /// Бизнес и активы
+      public static let currentCompanies = L10n.tr("Localizable", "graph.dossier.current_companies", fallback: "Бизнес и активы")
       /// Образование
       public static let education = L10n.tr("Localizable", "graph.dossier.education", fallback: "Образование")
       /// Открыть в графе: %@

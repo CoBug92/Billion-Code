@@ -36,6 +36,7 @@ struct DenseGraphEdge: Identifiable, Equatable, Sendable {
         case business
         case education
         case family
+        case association
     }
 
     func connects(_ nodeID: GraphNode.ID) -> Bool {

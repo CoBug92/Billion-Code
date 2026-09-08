@@ -24,7 +24,8 @@ struct DenseGraphSceneView: View {
                             node: node,
                             isSelected: viewModel.selectedNodeID == node.id,
                             isHighlighted: viewModel.isHighlighted(nodeID: node.id),
-                            showsLabel: viewModel.shouldShowLabel(for: node)
+                            showsLabel: viewModel.shouldShowLabel(for: node),
+                            zoomScale: viewModel.camera.scale
                         ) {
                             select(node: node)
                         }
@@ -381,7 +382,6 @@ private enum DenseLegendShape {
         }
     }
 }
-
 // MARK: - Constants
 
 private extension Double {

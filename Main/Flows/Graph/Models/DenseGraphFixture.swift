@@ -6,7 +6,8 @@ enum DenseGraphFixture {
 
 private extension DenseGraphFixture {
     static func makeGraph() -> DenseGraphData {
-        let personNodes = profiles.map { profile in
+        let activeProfiles = mergedProfiles
+        let personNodes = activeProfiles.map { profile in
             GraphNode(
                 id: profile.id,
                 kind: .person,
@@ -20,7 +21,7 @@ private extension DenseGraphFixture {
         var entityNodes: [GraphNode.ID: GraphNode] = [:]
         var edges: [DenseGraphEdge] = []
 
-        for profile in profiles {
+        for profile in activeProfiles {
             for affiliation in profile.affiliations {
                 entityNodes[affiliation.entityID] = GraphNode(
                     id: affiliation.entityID,
@@ -52,6 +53,10 @@ private extension DenseGraphFixture {
                 detail: "братья"
             )
         )
+        edges.append(contentsOf: AmericanBillionairesCatalog.current.relationshipEdges)
+        edges = Dictionary(edges.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            .values
+            .sorted { $0.id < $1.id }
         let unpositioned = personNodes + entityNodes.values.sorted { $0.id < $1.id }
         let positions = DenseGraphLayout().layout(nodes: unpositioned, edges: edges, layoutVersion: 1)
         let nodes = unpositioned.map { node in
@@ -76,6 +81,11 @@ private extension DenseGraphFixture {
         let parts = name.split(separator: " ")
         guard let first = parts.first, let last = parts.last else { return name }
         return parts.count > 1 ? "\(first.prefix(1)). \(last)" : name
+    }
+
+    static var mergedProfiles: [DenseGraphProfile] {
+        let curatedIDs = Set(profiles.map(\.id))
+        return profiles + AmericanBillionairesCatalog.current.profiles.filter { !curatedIDs.contains($0.id) }
     }
 
     static func portraitReference(for personID: GraphNode.ID) -> GraphNode.PortraitReference? {

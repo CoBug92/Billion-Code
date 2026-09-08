@@ -16,7 +16,7 @@ enum DenseGraphDossierFactory {
                     period: edge.period,
                     startYear: period?.startYear ?? .zero,
                     isCurrent: edge.period.contains("н.в."),
-                    source: nil
+                    source: edge.kind == .association ? forbesSource : nil
                 )
             }
             return (node.id, dossier(for: node, links: links))
@@ -25,11 +25,21 @@ enum DenseGraphDossierFactory {
 }
 
 private extension DenseGraphDossierFactory {
+    static let catalogPeopleByID = AmericanBillionairesCatalog.current.peopleByID
+    static let catalogOrganizationActivity = AmericanBillionairesCatalog.current.organizationActivityByID
+
     static let forbesSource = DossierSource(
         id: "source:forbes-real-time",
         publisher: "Forbes",
         title: "Real-Time Billionaires",
         url: URL(string: "https://www.forbes.com/real-time-billionaires/")
+    )
+
+    static let forbesAnnualSource = DossierSource(
+        id: "source:forbes-billionaires-2026",
+        publisher: "Forbes",
+        title: "World’s Billionaires 2026",
+        url: URL(string: "https://www.forbes.com/billionaires/")
     )
 
     static let publicEstimateSource = DossierSource(
@@ -55,6 +65,7 @@ private extension DenseGraphDossierFactory {
     static func personDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
         let work = links.filter { $0.entityID?.hasPrefix("organization:") == true }
         let education = links.filter { $0.entityID?.hasPrefix("university:") == true }
+        let relatedPeople = links.filter { $0.entityID?.hasPrefix("person:") == true }
         let current = work.filter(\.isCurrent)
         let description: String
         if let first = work.min(by: { $0.startYear < $1.startYear }),
@@ -68,7 +79,7 @@ private extension DenseGraphDossierFactory {
             description = "Датированный профиль связей человека в текущей версии графа."
         }
 
-        let facts = [
+        var facts = [
             DossierFact(
                 id: "\(node.id):status",
                 label: "Сейчас связан",
@@ -82,6 +93,48 @@ private extension DenseGraphDossierFactory {
                 source: nil
             )
         ]
+        if let record = catalogPeopleByID[node.id] {
+            if let annualRank = record.annualRank {
+                facts.append(
+                    DossierFact(
+                        id: "\(node.id):forbes-rank",
+                        label: "Forbes 2026",
+                        value: "№\(annualRank) в мировом списке",
+                        source: forbesAnnualSource
+                    )
+                )
+            }
+            if !record.sourcesOfWealth.isEmpty {
+                facts.append(
+                    DossierFact(
+                        id: "\(node.id):wealth-source",
+                        label: "Источник состояния",
+                        value: record.sourcesOfWealth.joined(separator: ", "),
+                        source: record.isAmericanBillionaire2026 ? forbesAnnualSource : forbesSource
+                    )
+                )
+            }
+            if !record.industries.isEmpty {
+                facts.append(
+                    DossierFact(
+                        id: "\(node.id):industry",
+                        label: "Отрасль",
+                        value: record.industries.joined(separator: ", "),
+                        source: record.isAmericanBillionaire2026 ? forbesAnnualSource : forbesSource
+                    )
+                )
+            }
+            if let residence = record.residence {
+                facts.append(
+                    DossierFact(
+                        id: "\(node.id):residence",
+                        label: "Место проживания",
+                        value: residence,
+                        source: record.isAmericanBillionaire2026 ? forbesAnnualSource : forbesSource
+                    )
+                )
+            }
+        }
         return EntityDossier(
             entityID: node.id,
             kind: node.kind,
@@ -89,7 +142,7 @@ private extension DenseGraphDossierFactory {
             operatingPeriod: nil,
             lastReviewedOn: "04.09.2026",
             facts: facts,
-            links: work,
+            links: work + relatedPeople,
             timeline: timeline(from: links),
             wealth: wealthByPersonID[node.id],
             personDetails: personDetailsByID[node.id],
@@ -103,7 +156,9 @@ private extension DenseGraphDossierFactory {
             return role.contains("основател") || role.contains("соосновател")
         }
         let people = uniquePeople(in: links)
-        let activity = organizationActivity[node.id] ?? "Технологические продукты и сервисы"
+        let activity = organizationActivity[node.id]
+            ?? catalogOrganizationActivity[node.id]
+            ?? "Деловые активы и профессиональная деятельность"
         let operatingPeriod = organizationOperatingPeriod(for: node.id, links: links)
         var facts = [
             DossierFact(id: "\(node.id):activity", label: "Вид деятельности", value: activity, source: nil)
@@ -150,7 +205,7 @@ private extension DenseGraphDossierFactory {
     static func universityDossier(for node: GraphNode, links: [DossierEntityLink]) -> EntityDossier {
         let metadata = universityMetadata[node.id] ?? (
             type: "Исследовательский университет",
-            location: "США",
+            location: "Не указано",
             operatingPeriod: "—"
         )
         let alumni = uniquePeople(in: links)
@@ -396,6 +451,27 @@ private extension DenseGraphDossierFactory {
                 history: [DossierWealthPoint(id: "2026", year: 2026, amountUSD: amount)]
             )
         }
+        for person in AmericanBillionairesCatalog.current.people where person.netWorthUSD > 0 {
+            let source = person.isAmericanBillionaire2026 ? forbesAnnualSource : forbesSource
+            result[person.id] = DossierWealth(
+                amountUSD: person.netWorthUSD,
+                asOf: person.wealthAsOf,
+                methodology: person.isAmericanBillionaire2026
+                    ? "Годовая оценка состояния Forbes на 1 марта 2026 года."
+                    : "Оценка по профилю Forbes Real-Time Billionaires.",
+                source: source,
+                components: person.sourcesOfWealth.enumerated().map { index, value in
+                    DossierWealthComponent(
+                        id: "\(person.id):wealth-component:\(index)",
+                        label: value,
+                        detail: "Указанный Forbes источник состояния"
+                    )
+                },
+                history: [
+                    DossierWealthPoint(id: "\(person.id):wealth-2026", year: 2026, amountUSD: person.netWorthUSD)
+                ]
+            )
+        }
         return result
     }()
 
@@ -520,8 +596,25 @@ private extension DenseGraphDossierFactory {
             birthDate: .init(year: 1968, month: 7, day: 5),
             ageReferenceDate: .init(year: 2024, month: 8, day: 9)
         )
+        for person in AmericanBillionairesCatalog.current.people {
+            guard
+                let birthDate = person.birthDate,
+                let parsed = parseBirthDate(birthDate)
+            else { continue }
+            values[person.id] = DossierPersonDetails(birthDate: parsed, ageReferenceDate: nil)
+        }
         return values
     }()
+
+    static func parseBirthDate(_ value: String) -> DossierBirthDate? {
+        let components = value.split(separator: "-").compactMap { Int($0) }
+        guard let year = components.first else { return nil }
+        return DossierBirthDate(
+            year: year,
+            month: components.count > 1 ? components[1] : nil,
+            day: components.count > 2 ? components[2] : nil
+        )
+    }
 
     static let organizationActivity: [String: String] = [
         "organization:tesla": "Электромобили, энергетика и программное обеспечение",

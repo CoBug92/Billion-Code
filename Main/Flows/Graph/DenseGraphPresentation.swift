@@ -10,6 +10,8 @@ extension DenseGraphEdge.Kind {
             Asset.Colors.chapterViolet.swiftUIColor
         case .family:
             Asset.Colors.chapterTeal.swiftUIColor
+        case .association:
+            Asset.Colors.chapterBlue.swiftUIColor
         }
     }
 }
