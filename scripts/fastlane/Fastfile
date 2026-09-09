@@ -83,7 +83,7 @@ def current_marketing_version
   match = File.read(xcodegen_application_path).match(/^\s*MARKETING_VERSION:\s*(.+)$/)
   UI.user_error!("Could not find MARKETING_VERSION in #{xcodegen_application_path}") unless match
 
-  match[1].strip.delete("'")
+  match[1].strip.delete("'\"")
 end
 
 def update_project_versioning!(marketing_version:, build_number:)
@@ -109,7 +109,7 @@ def ci_keychain_name
   explicit_name = ENV["CI_KEYCHAIN_NAME"].to_s.strip
   return explicit_name unless explicit_name.empty?
 
-  "compound_interest_ci"
+  "billion_code_ci"
 end
 
 def ensure_deploy_branch!
@@ -154,7 +154,17 @@ def run_testflight_deploy
   )
 
   UI.important("Deploy: regenerating project files")
-  sh("../generate.sh")
+  sh("../generate")
+
+  UI.important("Deploy: configuring manual App Store signing")
+  update_code_signing_settings(
+    use_automatic_signing: false,
+    path: project_path,
+    team_id: team_id,
+    targets: [scheme],
+    profile_name: "match AppStore #{app_identifier}",
+    code_sign_identity: "Apple Distribution"
+  )
 
   UI.important("Deploy: archiving app with gym")
   gym(
@@ -181,12 +191,12 @@ end
 platform :ios do
   desc "Generate resources and Xcode project"
   lane :generate do
-    sh("../generate.sh")
+    sh("../generate")
   end
 
   desc "Run SwiftLint"
   lane :lint do
-    sh("../swiftlint/swiftlint.sh")
+    sh("../swiftlint/run")
   end
 
   desc "Run unit tests on the configured simulator"

@@ -1,4 +1,7 @@
-.PHONY: generate lint test build signing-sync-development signing-sync-appstore signing-create-development signing-create-appstore
+.PHONY: bootstrap generate lint test build deploy signing-sync-development signing-sync-appstore signing-create-development signing-create-appstore
+
+bootstrap:
+	./scripts/bootstrap.sh
 
 generate:
 	./scripts/generate
@@ -11,6 +14,9 @@ test:
 
 build:
 	./scripts/build
+
+deploy:
+	./scripts/fastlane/run ios deploy_to_tf
 
 signing-sync-development:
 	./scripts/fastlane/run ios signing_sync type:development

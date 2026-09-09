@@ -1,0 +1,63 @@
+name: Verify stage
+description: Prepare the iOS toolchain, generate BillionCode, and run one verification lane
+
+inputs:
+  stage:
+    description: Fastlane verification lane to run
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate stage
+      shell: bash
+      env:
+        VERIFY_STAGE: ${{ inputs.stage }}
+      run: |
+        case "$VERIFY_STAGE" in
+          lint|test|build) ;;
+          *) echo "Unsupported verify stage: $VERIFY_STAGE"; exit 1 ;;
+        esac
+    - name: Select Xcode
+      shell: bash
+      env:
+        DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+      run: |
+        test -d "$DEVELOPER_DIR"
+        echo "Using DEVELOPER_DIR=$DEVELOPER_DIR"
+        xcodebuild -version
+    - name: Install dependencies
+      shell: bash
+      env:
+        VERIFY_STAGE: ${{ inputs.stage }}
+      run: |
+        export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+        brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+        brew list swiftgen >/dev/null 2>&1 || brew install swiftgen
+        if [ "$VERIFY_STAGE" = "lint" ]; then
+          brew list swiftlint >/dev/null 2>&1 || brew install swiftlint
+        fi
+        user_gem_home="$(gem env user_gemhome)"
+        export GEM_HOME="$user_gem_home"
+        export GEM_PATH="$GEM_HOME:$(ruby -e 'print Gem.default_dir')"
+        export PATH="$GEM_HOME/bin:$PATH"
+        gem install --user-install bundler -v 2.5.3
+        "$GEM_HOME/bin/bundle" _2.5.3_ config set --local path "$GEM_HOME"
+        "$GEM_HOME/bin/bundle" _2.5.3_ install
+        echo "GEM_HOME=$GEM_HOME" >> "$GITHUB_ENV"
+        echo "GEM_PATH=$GEM_PATH" >> "$GITHUB_ENV"
+        echo "CI_DERIVED_DATA_ROOT=$RUNNER_TEMP/derived-data" >> "$GITHUB_ENV"
+    - name: Generate project
+      shell: bash
+      working-directory: scripts/fastlane
+      run: |
+        export PATH="$GEM_HOME/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+        "$GEM_HOME/bin/bundle" _2.5.3_ exec fastlane ios generate
+    - name: Run ${{ inputs.stage }}
+      shell: bash
+      working-directory: scripts/fastlane
+      env:
+        VERIFY_STAGE: ${{ inputs.stage }}
+      run: |
+        export PATH="$GEM_HOME/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+        "$GEM_HOME/bin/bundle" _2.5.3_ exec fastlane ios "$VERIFY_STAGE"

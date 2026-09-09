@@ -1,0 +1,116 @@
+name: testflight-deploy
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: testflight-deploy-master
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+    with:
+      full: true
+
+  deploy:
+    name: deploy
+    needs: verify
+    permissions:
+      contents: read
+    runs-on: [self-hosted, macOS, personal, billion-code]
+    timeout-minutes: 60
+    outputs:
+      release_tag: ${{ steps.release_metadata.outputs.release_tag }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+      CI_KEYCHAIN_NAME: billion_code_ci_${{ github.run_id }}_${{ github.run_attempt }}
+      MATCH_READONLY: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: |
+          test -d "$DEVELOPER_DIR"
+          echo "Using DEVELOPER_DIR=$DEVELOPER_DIR"
+          xcodebuild -version
+      - name: Install dependencies
+        run: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          brew list swiftgen >/dev/null 2>&1 || brew install swiftgen
+          user_gem_home="$(gem env user_gemhome)"
+          export GEM_HOME="$user_gem_home"
+          export GEM_PATH="$GEM_HOME:$(ruby -e 'print Gem.default_dir')"
+          export PATH="$GEM_HOME/bin:$PATH"
+          gem install --user-install bundler -v 2.5.3
+          "$GEM_HOME/bin/bundle" _2.5.3_ config set --local path "$GEM_HOME"
+          "$GEM_HOME/bin/bundle" _2.5.3_ install
+      - name: Deploy to TestFlight
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: |
+          export PATH="$(gem env user_gemhome)/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+          cd scripts/fastlane
+          bundle _2.5.3_ exec fastlane ios deploy_to_tf
+      - name: Read release metadata
+        id: release_metadata
+        run: |
+          marketing_version="$(sed -nE 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*['\''"]?([^'\''"[:space:]]+)['\''"]?[[:space:]]*$/\1/p' scripts/xcodegen/Application.yml)"
+          build_number="$(sed -nE 's/^[[:space:]]*CURRENT_PROJECT_VERSION:[[:space:]]*['\''"]?([^'\''"[:space:]]+)['\''"]?[[:space:]]*$/\1/p' scripts/xcodegen/Application.yml)"
+          test -n "$marketing_version"
+          test -n "$build_number"
+          echo "release_tag=v${marketing_version}-b${build_number}" >> "$GITHUB_OUTPUT"
+      - name: Restore version files
+        if: always()
+        run: git restore --source=HEAD --worktree -- scripts/xcodegen/Application.yml
+      - name: Cleanup CI keychain
+        if: always()
+        run: |
+          keychain_dir="$HOME/Library/Keychains"
+          login_keychain="$keychain_dir/login.keychain-db"
+          if [ -e "$login_keychain" ]; then
+            security default-keychain -s "$login_keychain" || true
+          fi
+          for keychain_path in \
+            "$keychain_dir/$CI_KEYCHAIN_NAME" \
+            "$keychain_dir/$CI_KEYCHAIN_NAME-db" \
+            "$keychain_dir/$CI_KEYCHAIN_NAME.keychain-db"
+          do
+            if [ -e "$keychain_path" ]; then
+              security delete-keychain "$keychain_path" || rm -f "$keychain_path"
+            fi
+          done
+
+  tag:
+    name: tag
+    needs: deploy
+    permissions:
+      contents: write
+    runs-on: [self-hosted, macOS, personal, billion-code]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - name: Create and push release tag
+        env:
+          RELEASE_TAG: ${{ needs.deploy.outputs.release_tag }}
+        run: |
+          test -n "$RELEASE_TAG"
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            echo "Tag $RELEASE_TAG already exists"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" -m "TestFlight $RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "$RELEASE_TAG"

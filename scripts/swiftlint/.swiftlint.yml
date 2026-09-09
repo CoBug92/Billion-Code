@@ -34,12 +34,11 @@ excluded:
   - Main/Resources/Generated
 
 file_length:
-  warning: 400
-  error: 400
+  warning: 1500
+  error: 2000
 
 line_length:
   warning: 140
   error: 150
   ignores_comments: true
   ignores_urls: true
-

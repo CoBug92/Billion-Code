@@ -255,6 +255,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
   fastlane (= 2.238.0)
 
 BUNDLED WITH

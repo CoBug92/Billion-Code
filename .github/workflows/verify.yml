@@ -1,0 +1,64 @@
+name: verify
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_call:
+    inputs:
+      full:
+        description: Run build in addition to pull request checks
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: [self-hosted, macOS, personal, billion-code]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Run lint
+        uses: ./.github/actions/verify-stage
+        with:
+          stage: lint
+
+  tests:
+    name: test
+    runs-on: [self-hosted, macOS, personal, billion-code]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Run tests
+        uses: ./.github/actions/verify-stage
+        with:
+          stage: test
+
+  build:
+    name: build
+    if: inputs.full == true
+    runs-on: [self-hosted, macOS, personal, billion-code]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Run build
+        uses: ./.github/actions/verify-stage
+        with:
+          stage: build
